@@ -1,4 +1,4 @@
-import DummyClass from "../src/smnet"
+import DummyClass from "../src"
 
 /**
  * Dummy test

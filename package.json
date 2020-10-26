@@ -1,7 +1,19 @@
 {
   "private": true,
   "workspaces": {
-    "packages": ["example", "smnet"],
-    "nohoist": ["**/babel**", "**/eslint**", "**/jest"]
+    "packages": [
+      "example",
+      "smnet"
+    ],
+    "nohoist": [
+      "**/babel**",
+      "**/eslint**",
+      "**/jest"
+    ]
+  },
+  "devDependencies": {},
+  "scripts": {
+    "watch": "yarn workspace smnet watch",
+    "start": "yarn workspace example start"
   }
 }
