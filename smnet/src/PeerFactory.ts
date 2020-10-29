@@ -1,20 +1,29 @@
 import Peer from 'peerjs'
 
 export class PeerFactory {
-  make (id?: string): Peer {
-    const peerHostConfig = process.env.REACT_APP_PEER_HOST
-    if (peerHostConfig === undefined) {
-      return new Peer(id)
+  private readonly _options?: Peer.PeerJSOption
+  constructor (options?: Peer.PeerJSOption) {
+    if (options !== undefined) {
+      this._options = options
     } else {
-      return new Peer(id, {
-        host: process.env.REACT_APP_PEER_HOST ?? 'localhost',
-        port: Number.parseInt(process.env.REACT_APP_PEER_PORT ?? '9000', 10),
-        path: process.env.REACT_APP_PEER_PATH ?? '/peer',
-        secure: process.env.REACT_APP_PEER_SECURE === 'true',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        config: JSON.parse(peerHostConfig)
-      })
+      const peerHostConfig = process.env.REACT_APP_PEER_HOST
+      if (peerHostConfig === undefined) {
+        this._options = undefined
+      } else {
+        this._options = {
+          host: process.env.REACT_APP_PEER_HOST ?? 'localhost',
+          port: Number.parseInt(process.env.REACT_APP_PEER_PORT ?? '9000', 10),
+          path: process.env.REACT_APP_PEER_PATH ?? '/peer',
+          secure: process.env.REACT_APP_PEER_SECURE === 'true',
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          config: JSON.parse(peerHostConfig)
+        }
+      }
     }
+  }
+
+  make (id?: string): Peer {
+    return new Peer(id, this._options)
   }
 
   async makeAndOpen (id?: string): Promise<Peer> {
