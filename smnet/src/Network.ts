@@ -9,6 +9,17 @@ import { StarMemberStrategy } from './StarMemberStrategy'
 import { DataStream } from './DataStream'
 import { StateManager } from './StateManager'
 
+/**
+ * The main Network class, which holds
+ * - a networkStrategy that handles behavior when in different kinds of network and position, e.g. the center point in StarNetwork vs other points in that
+ * - a stateManager, which holds the data state of this network, you may supply you own version of stateManager such as observableStateManager
+ * - a dataStream, which handle the data exchange between different points in the network
+ * and it can
+ * - join a network
+ * - leave the joined network
+ * - dispatch changes on the data state
+ * - get the newest data state
+ */
 export class Network<State extends NetworkState, Action extends NetworkAction> {
   private peer?: Peer
   private readonly stateManager: StateManager<State>
@@ -42,10 +53,19 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     return this.getState()
   }
 
+  /**
+   * reduce a given state which changing owns' state
+   * @param prevState
+   * @param action
+   */
   public applyReducer (prevState: State, action: Action): State {
     return this.stateReducer(prevState, action)
   }
 
+  /**
+   * reduce owns' state
+   * @param action
+   */
   public reduce (action: Action): void {
     this.stateManager.set(this.stateReducer(this.stateManager.get(), action))
   }
@@ -62,6 +82,11 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     }
   }
 
+  /**
+   * Join a network, give a peerFactory if you have different PeerJS configuration
+   * @param networkName
+   * @param peerFactory
+   */
   public async join (networkName: string, peerFactory?: PeerFactory): Promise<void> {
     if (this.peer !== undefined) {
       throw new AlreadyJoinedNetworkError()
@@ -74,6 +99,11 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     }
   }
 
+  /**
+   * set up StarHostStrategy
+   * @param name
+   * @param peerFactory
+   */
   public async initAsStarHost (name: string, peerFactory: PeerFactory): Promise<void> {
     this.networkStrategy = new StarHostStrategy(this, peerFactory)
     this.peer = await peerFactory.makeAndOpen(name)
@@ -86,6 +116,11 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     this.networkName = name
   }
 
+  /**
+   * set up StarMemberStrategy
+   * @param name
+   * @param peerFactory
+   */
   public async initAsStarMember (name: string, peerFactory: PeerFactory): Promise<void> {
     this.networkStrategy = new StarMemberStrategy(this, peerFactory)
     this.peer = await peerFactory.makeAndOpen()
@@ -95,11 +130,14 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     this.networkName = name
   }
 
+  /**
+   * Get the neighboring connections of this point
+   */
   public getNeighbor (): string[] | undefined {
     if (this.peer === undefined) {
       return undefined
     }
-    return [this.peer.id, ...Object.keys(this.dataStream.getConnections())]
+    return Object.keys(this.dataStream.getConnections())
   }
 
   public async send<T, U = unknown> (id: string | DataConnection, pkgType: PkgType, data: T): Promise<SendResponse<U>> {
@@ -121,39 +159,54 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     conn.on('close', () => {
       this.dataStream.unregisterConnection(conn)
     })
-    conn.on('data', (rawData: Pkg<State, Action>) => {
-      const { pid, pkgType, data } = rawData
-      switch (pkgType) {
-        case PkgType.DISPATCH:
-          this.networkStrategy?.handleDispatch(this.getState(), data)
-            .then(newState => {
-              const cs: string = checksum(JSON.stringify(newState))
-              this.dataStream.sendACK(conn, pid, cs)
-            })
-            .catch((error: Error) => {
-              this.dataStream.sendNACK(conn, pid, error.message)
-            })
-          break
-        case PkgType.ACK:
-          this.dataStream.receiveACK(pid, data)
-          break
-        case PkgType.NACK:
-          this.dataStream.receiveNACK(pid, data)
-          break
-        case PkgType.PROMOTE:
-          this.networkStrategy?.handlePromote(data)
-            .then(() => this.dataStream.sendACK(conn, pid, data))
-            .catch((error: Error) => this.dataStream.sendNACK(conn, pid, error.message))
-          break
-        case PkgType.CANCEL:
-          this.networkStrategy?.handleCancel(data)
-            .then(() => this.dataStream.sendACK(conn, pid, data))
-            .catch((error: Error) => this.dataStream.sendNACK(conn, pid, error.message))
-          break
-        case PkgType.SET_STATE:
-          this.setState(data)
-      }
-    })
+    conn.on('data', (pkg: Pkg<State, Action>) => this.dataHandler(pkg, conn))
     this.networkStrategy?.setUpConnection(conn)
+  }
+
+  /**
+   * handling different kinds of package
+   *
+   * @param pkg
+   * @param conn
+   * @private
+   */
+  private dataHandler (pkg: Pkg<State, Action>, conn: Peer.DataConnection): void {
+    const { pid, pkgType, data } = pkg
+    switch (pkgType) {
+      case PkgType.DISPATCH:
+        // ack with new state's checksum
+        // nack with error message
+        this.networkStrategy?.handleDispatch(this.getState(), data)
+          .then(newState => {
+            const cs: string = checksum(JSON.stringify(newState))
+            this.dataStream.sendACK(conn, pid, cs)
+          })
+          .catch((error: Error) => {
+            this.dataStream.sendNACK(conn, pid, error.message)
+          })
+        break
+      case PkgType.ACK:
+        this.dataStream.receiveACK(pid, data)
+        break
+      case PkgType.NACK:
+        this.dataStream.receiveNACK(pid, data)
+        break
+      case PkgType.PROMOTE:
+        // promote need to provide checksum, only promote when checksum same as that of staging state
+        this.networkStrategy?.handlePromote(data)
+          .then(() => this.dataStream.sendACK(conn, pid, data))
+          .catch((error: Error) => this.dataStream.sendNACK(conn, pid, error.message))
+        break
+      case PkgType.CANCEL:
+        // cancel need to provide checksum, only cancel when checksum same as that of staging state
+        this.networkStrategy?.handleCancel(data)
+          .then(() => this.dataStream.sendACK(conn, pid, data))
+          .catch((error: Error) => this.dataStream.sendNACK(conn, pid, error.message))
+        break
+      case PkgType.SET_STATE:
+        // ignore whatever staging state, just set state and cancel the staging state
+        this.setState(data)
+        this.networkStrategy?.forceCancel()
+    }
   }
 }

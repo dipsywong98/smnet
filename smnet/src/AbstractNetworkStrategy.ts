@@ -6,6 +6,16 @@ import checksum from 'checksum'
 import { NetworkBusyError, NoStagingStateError } from './Errors'
 import { PeerFactory } from './PeerFactory'
 
+/**
+ * AbstractNetworkStrategies is the base class of all other NetworkStrategies, it
+ * hold the stagingState, which is an intermediate state computed when a point dispatch,
+ *    but hasn't verified by other points,
+ *    after getting verified we promote this stagingState to live state that is used by the application,
+ *    NetworkStrategies can implement different logics to handle this
+ * It always reject dispatch when there is statingState because even if we queue the dispatches in a buffer,
+ *    the users may not be aware of what would be the new state before sending this request,
+ *    the drawback is the user need to send their request manually later
+ */
 export abstract class AbstractNetworkStrategy<State extends NetworkState, Action extends NetworkAction> implements NetworkStrategy<State, Action> {
   network: Network<State, Action>
   protected stagingState?: State
@@ -32,6 +42,20 @@ export abstract class AbstractNetworkStrategy<State extends NetworkState, Action
     return await Promise.resolve(prevState)
   }
 
+  public async handlePromote (cs: string): Promise<void> {
+    if (this.stagingState !== undefined) {
+      if (checksum(JSON.stringify(this.stagingState)) === cs) {
+        this.network.setState(this.stagingState)
+        this.stagingState = undefined
+      } else {
+        throw new Error('Cannot promote staging state with unmatched checksum')
+      }
+    } else {
+      throw new NoStagingStateError()
+    }
+    return await Promise.resolve()
+  }
+
   public async handleCancel (cs: string): Promise<void> {
     if (this.stagingState !== undefined) {
       if (checksum(JSON.stringify(this.stagingState)) === cs) {
@@ -45,18 +69,8 @@ export abstract class AbstractNetworkStrategy<State extends NetworkState, Action
     return await Promise.resolve()
   }
 
-  public async handlePromote (cs: string): Promise<void> {
-    if (this.stagingState !== undefined) {
-      if (checksum(JSON.stringify(this.stagingState)) === cs) {
-        this.network.setState(this.stagingState)
-        this.stagingState = undefined
-      } else {
-        throw new Error('Cannot promote staging state with unmatched checksum')
-      }
-    } else {
-      throw new NoStagingStateError()
-    }
-    return await Promise.resolve()
+  public forceCancel (): void {
+    this.stagingState = undefined
   }
 
   public isBusy (): boolean {

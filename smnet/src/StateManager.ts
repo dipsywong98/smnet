@@ -6,6 +6,10 @@ type Setter<State extends NetworkState> = (state: State) => void
 
 type Resetter = () => void
 
+/**
+ * Make State changes policy extensible
+ * Only have get, set and reset
+ */
 export class StateManager<State extends NetworkState> {
   private readonly _get: Getter<State>
   private readonly _set: Setter<State>
@@ -47,10 +51,4 @@ export class StateManager<State extends NetworkState> {
   static make<State extends NetworkState> (get: Getter<State> | State, set?: Setter<State>, reset?: Resetter): StateManager<State> {
     return new StateManager<State>(get, set, reset)
   }
-}
-
-export function isStateManager<State extends NetworkState> (object: unknown | StateManager<State>): object is StateManager<State> {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
-  return typeof object === 'object' && object !== null && typeof object.get === 'function' && typeof object.set === 'function' && object.reset === 'function'
 }
