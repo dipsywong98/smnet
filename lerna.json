@@ -1,0 +1,7 @@
+{
+  "packages": [
+    "example",
+    "smnet"
+  ],
+  "version": "0.0.0"
+}

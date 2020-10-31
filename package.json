@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "name": "smnet-project",
   "workspaces": {
     "packages": [
       "example",
@@ -11,7 +11,9 @@
       "**/jest"
     ]
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "lerna": "^3.22.1"
+  },
   "scripts": {
     "watch": "yarn workspace smnet watch",
     "start": "yarn workspace example start"
