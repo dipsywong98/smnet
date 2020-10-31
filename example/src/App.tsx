@@ -7,8 +7,9 @@ const network = new Network((prevState, action) => {
   switch (action.type) {
     case 'set-foo':
       return { ...prevState, foo: (action.payload ?? '') as string }
+    default:
+      throw new Error('unknown action')
   }
-  return prevState
 }, { foo: '' })
 
 network.join('my-net').then(() => {
@@ -16,8 +17,7 @@ network.join('my-net').then(() => {
 }).catch(console.error)
 
 const App: FunctionComponent = () => {
-  const [networkName, setNetworkName] = useState('my-net')
-  const [text, setText] = useState(0)
+  const [, setText] = useState(0)
   useEffect(() => {
     window.setInterval(() => {
       console.log(network.getState())
@@ -34,6 +34,12 @@ const App: FunctionComponent = () => {
             network.dispatch({ type: 'set-foo', payload: value }).catch(console.error)
           }}
         />
+        <button
+          onClick={(): void => {
+            network.dispatch({ type: '' }).catch(console.log)
+          }}>
+          error
+        </button>
       </header>
     </div>
   )

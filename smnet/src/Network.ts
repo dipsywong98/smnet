@@ -112,11 +112,11 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
   public async send<T, U = unknown> (id: string | DataConnection, pkgType: PkgType, data: T): Promise<SendResponse<U>> {
     const conn = typeof id === 'string' ? this.connections[id] : id
     if (conn !== undefined) {
-      return await new Promise((resolve) => {
+      return await new Promise((resolve, reject) => {
         const pid = v4()
         this.sentPromises[pid] = {
           resolve: (data: never) => resolve({ conn, data }),
-          reject: (error: string) => resolve({ conn, error })
+          reject: (error: string) => reject(new Error(error))
         }
         conn.send({ pid, pkgType, data })
       })
@@ -141,12 +141,14 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
       const { pid, pkgType, data } = rawData
       switch (pkgType) {
         case PkgType.DISPATCH:
-          this.networkStrategy?.handleDispatch(this.state, data).then(newState => {
-            const cs: string = checksum(JSON.stringify(newState))
-            conn.send({ pkgType: PkgType.ACK, pid, data: cs })
-          }).catch((error: Error) => {
-            conn.send({ pkgType: PkgType.NACK, pid, data: error.message })
-          })
+          this.networkStrategy?.handleDispatch(this.state, data)
+            .then(newState => {
+              const cs: string = checksum(JSON.stringify(newState))
+              conn.send({ pkgType: PkgType.ACK, pid, data: cs })
+            })
+            .catch((error: Error) => {
+              conn.send({ pkgType: PkgType.NACK, pid, data: error.message })
+            })
           break
         case PkgType.ACK:
           if (pid !== undefined && pid in this.sentPromises) {
