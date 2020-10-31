@@ -24,7 +24,12 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
   private readonly initialStateFactory: InitialStateFactory<State>
   private sentPromises: { [id: string]: PromiseHandler } = {}
   private readonly stateReducer: NetworkReducer<State, Action>
-  private networkStrategy: NetworkStrategy<State, Action> = new StarHostStrategy(this)
+  private networkStrategy?: NetworkStrategy<State, Action>
+  private name?: string
+
+  public getName (): string | undefined {
+    return this.name
+  }
 
   constructor (stateReducer: NetworkReducer<State, Action>, initialStateFactory: State | InitialStateFactory<State>) {
     if (typeof initialStateFactory !== 'function') {
@@ -60,6 +65,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
       this.peer = undefined
       this.state = this.initialStateFactory()
       this.connections = {}
+      this.name = undefined
     }
   }
 
@@ -69,21 +75,31 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     }
     peerFactory = peerFactory ?? new PeerFactory()
     try {
-      this.networkStrategy = new StarHostStrategy(this)
-      this.peer = await peerFactory.makeAndOpen(name)
-      this.peer.on('connection', conn => {
-        this.setUpConnection(conn)
-        conn.on('open', () => {
-          conn.send({ pkgType: PkgType.SET_STATE, data: this.state })
-        })
-      })
+      await this.initAsStarHost(name, peerFactory)
     } catch (e) {
-      this.networkStrategy = new StarMemberStrategy(this)
-      this.peer = await peerFactory.makeAndOpen()
-      const conn = this.peer.connect(name)
-      this.setUpConnection(conn)
-      this.connections[conn.peer] = conn
+      await this.initAsStarMember(name, peerFactory)
     }
+  }
+
+  public async initAsStarHost (name: string, peerFactory: PeerFactory): Promise<void> {
+    this.networkStrategy = new StarHostStrategy(this, peerFactory)
+    this.peer = await peerFactory.makeAndOpen(name)
+    this.peer.on('connection', conn => {
+      this.setUpConnection(conn)
+      conn.on('open', () => {
+        conn.send({ pkgType: PkgType.SET_STATE, data: this.state })
+      })
+    })
+    this.name = name
+  }
+
+  public async initAsStarMember (name: string, peerFactory: PeerFactory): Promise<void> {
+    this.networkStrategy = new StarMemberStrategy(this, peerFactory)
+    this.peer = await peerFactory.makeAndOpen()
+    const conn = this.peer.connect(name)
+    this.setUpConnection(conn)
+    this.connections[conn.peer] = conn
+    this.name = name
   }
 
   public getNeighbor (): string[] | undefined {
@@ -125,7 +141,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
       const { pid, pkgType, data } = rawData
       switch (pkgType) {
         case PkgType.DISPATCH:
-          this.networkStrategy.handleDispatch(this.state, data).then(newState => {
+          this.networkStrategy?.handleDispatch(this.state, data).then(newState => {
             const cs: string = checksum(JSON.stringify(newState))
             conn.send({ pkgType: PkgType.ACK, pid, data: cs })
           }).catch((error: Error) => {
@@ -147,12 +163,12 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
           }
           break
         case PkgType.PROMOTE:
-          this.networkStrategy.handlePromote(data)
+          this.networkStrategy?.handlePromote(data)
             .then(() => conn.send({ pkgType: PkgType.ACK, pid, data }))
             .catch((error: Error) => conn.send({ pkgType: PkgType.NACK, pid, data: error.message }))
           break
         case PkgType.CANCEL:
-          this.networkStrategy.handleCancel(data)
+          this.networkStrategy?.handleCancel(data)
             .then(() => conn.send({ pkgType: PkgType.ACK, pid, data }))
             .catch((error: Error) => conn.send({ pkgType: PkgType.NACK, pid, data: error.message }))
           break
@@ -160,7 +176,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
           this.setState(data)
       }
     })
-    this.networkStrategy.setUpConnection(conn)
+    this.networkStrategy?.setUpConnection(conn)
   }
 
   private removeSentPromise (pid: string): void {
@@ -169,6 +185,6 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
   }
 
   public async dispatch (action: Action): Promise<void> {
-    await this.networkStrategy.dispatch(action)
+    await this.networkStrategy?.dispatch(action)
   }
 }

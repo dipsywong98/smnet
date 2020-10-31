@@ -4,13 +4,16 @@ import { NetworkAction, NetworkState } from './types'
 import Peer from 'peerjs'
 import checksum from 'checksum'
 import { NetworkBusyError, NoStagingStateError } from './Errors'
+import { PeerFactory } from './PeerFactory'
 
 export abstract class AbstractNetworkStrategy<State extends NetworkState, Action extends NetworkAction> implements NetworkStrategy<State, Action> {
   network: Network<State, Action>
   protected stagingState?: State
+  protected peerFactory: PeerFactory
 
-  constructor (network: Network<State, Action>) {
+  constructor (network: Network<State, Action>, peerFactory: PeerFactory) {
     this.network = network
+    this.peerFactory = peerFactory
   }
 
   public async dispatch (action: Action): Promise<void> {
@@ -54,6 +57,10 @@ export abstract class AbstractNetworkStrategy<State extends NetworkState, Action
       throw new NoStagingStateError()
     }
     return await Promise.resolve()
+  }
+
+  public isBusy (): boolean {
+    return this.stagingState !== undefined
   }
 
   public abstract setUpConnection (conn: Peer.DataConnection): void

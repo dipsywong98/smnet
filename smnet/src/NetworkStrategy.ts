@@ -9,4 +9,5 @@ export interface NetworkStrategy<State extends NetworkState, Action extends Netw
   handleCancel: (cs: string) => Promise<void>
   handlePromote: (cs: string) => Promise<void>
   setUpConnection: (conn: DataConnection) => void
+  isBusy: () => boolean
 }
