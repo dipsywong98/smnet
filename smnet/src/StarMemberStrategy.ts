@@ -22,7 +22,7 @@ export class StarMemberStrategy<State extends NetworkState, Action extends Netwo
   }
 
   private async recover (): Promise<void> {
-    const name = this.network.getName()
+    const name = this.network.getNetworkName()
     if (name !== undefined) {
       if (!this.isBusy()) {
         try {
