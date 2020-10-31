@@ -1,7 +1,5 @@
 import { DataConnection } from 'peerjs'
 
-export type InitialStateFactory<T> = (overrides?: Partial<T>) => T
-
 export type NetworkAction = Record<string, unknown>
 export interface NetworkState{
   [key: string]: unknown | undefined

@@ -1,4 +1,4 @@
-import { InitialStateFactory, NetworkAction, NetworkReducer, NetworkState, Pkg, PkgType, SendResponse } from './types'
+import { NetworkAction, NetworkReducer, NetworkState, Pkg, PkgType, SendResponse } from './types'
 import { PeerFactory } from './PeerFactory'
 import Peer, { DataConnection } from 'peerjs'
 import { NetworkStrategy } from './NetworkStrategy'
@@ -7,36 +7,39 @@ import checksum from 'checksum'
 import { AlreadyJoinedNetworkError } from './Errors'
 import { StarMemberStrategy } from './StarMemberStrategy'
 import { DataStream } from './DataStream'
+import { StateManager } from './StateManager'
 
 export class Network<State extends NetworkState, Action extends NetworkAction> {
-  private state: State
   private peer?: Peer
-  private readonly initialStateFactory: InitialStateFactory<State>
+  private readonly stateManager: StateManager<State>
   private readonly stateReducer: NetworkReducer<State, Action>
   private networkStrategy?: NetworkStrategy<State, Action>
   private networkName?: string
   private readonly dataStream = new DataStream()
 
+  constructor (stateReducer: NetworkReducer<State, Action>, initialStateOrManager: State | StateManager<State>) {
+    if (initialStateOrManager instanceof StateManager) {
+      this.stateManager = initialStateOrManager
+    } else {
+      this.stateManager = StateManager.make(initialStateOrManager)
+    }
+    this.stateReducer = stateReducer
+  }
+
   public getNetworkName (): string | undefined {
     return this.networkName
   }
 
-  constructor (stateReducer: NetworkReducer<State, Action>, initialStateFactory: State | InitialStateFactory<State>) {
-    if (typeof initialStateFactory !== 'function') {
-      this.initialStateFactory = () => JSON.parse(JSON.stringify(initialStateFactory)) as State
-    } else {
-      this.initialStateFactory = initialStateFactory
-    }
-    this.state = this.initialStateFactory()
-    this.stateReducer = stateReducer
-  }
-
   public setState (state: State): void {
-    this.state = state
+    this.stateManager.set(state)
   }
 
   public getState (): State {
-    return this.state
+    return this.stateManager.get()
+  }
+
+  public get state (): State {
+    return this.getState()
   }
 
   public applyReducer (prevState: State, action: Action): State {
@@ -44,7 +47,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
   }
 
   public reduce (action: Action): void {
-    this.state = this.stateReducer(this.state, action)
+    this.stateManager.set(this.stateReducer(this.stateManager.get(), action))
   }
 
   public async leave (): Promise<void> {
@@ -53,7 +56,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
       this.peer.destroy()
       await promise
       this.peer = undefined
-      this.state = this.initialStateFactory()
+      this.stateManager.reset()
       this.dataStream.reset()
       this.networkName = undefined
     }
@@ -77,7 +80,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     this.peer.on('connection', conn => {
       this.setUpConnection(conn)
       conn.on('open', () => {
-        conn.send({ pkgType: PkgType.SET_STATE, data: this.state })
+        conn.send({ pkgType: PkgType.SET_STATE, data: this.getState() })
       })
     })
     this.networkName = name
@@ -122,7 +125,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
       const { pid, pkgType, data } = rawData
       switch (pkgType) {
         case PkgType.DISPATCH:
-          this.networkStrategy?.handleDispatch(this.state, data)
+          this.networkStrategy?.handleDispatch(this.getState(), data)
             .then(newState => {
               const cs: string = checksum(JSON.stringify(newState))
               this.dataStream.sendACK(conn, pid, cs)
