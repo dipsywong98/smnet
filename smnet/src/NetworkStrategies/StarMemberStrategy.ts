@@ -1,7 +1,7 @@
-import { NetworkAction, NetworkState, PkgType } from './types'
+import { NetworkAction, NetworkState, PkgType } from '../types'
 import Peer from 'peerjs'
 import { AbstractNetworkStrategy } from './AbstractNetworkStrategy'
-import { pause } from './pause'
+import { pause } from '../pause'
 
 /**
  * Strategy of the non-center point of star network
@@ -10,13 +10,11 @@ import { pause } from './pause'
 export class StarMemberStrategy<State extends NetworkState, Action extends NetworkAction> extends AbstractNetworkStrategy<State, Action> {
   // just forward the dispatch to host
   public async dispatch (action: Action): Promise<void> {
-    await super.dispatch(action)
     await this.network.broadcast(PkgType.DISPATCH, action)
   }
 
   // just do the reduce when receiving a dispatch
   public async handleDispatch (prevState: State, action: Action): Promise<State> {
-    prevState = await super.handleDispatch(prevState, action)
     this.stagingState = this.network.applyReducer(prevState, action)
     return await Promise.resolve(this.stagingState)
   }

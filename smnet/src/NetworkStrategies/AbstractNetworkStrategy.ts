@@ -1,10 +1,10 @@
 import { NetworkStrategy } from './NetworkStrategy'
-import { Network } from './Network'
-import { NetworkAction, NetworkState } from './types'
+import { Network } from '../Network'
+import { NetworkAction, NetworkState } from '../types'
 import Peer from 'peerjs'
 import checksum from 'checksum'
-import { NetworkBusyError, NoStagingStateError } from './Errors'
-import { PeerFactory } from './PeerFactory'
+import { NoStagingStateError } from '../Errors'
+import { PeerFactory } from '../PeerFactory'
 
 /**
  * AbstractNetworkStrategies is the base class of all other NetworkStrategies, it
@@ -18,7 +18,7 @@ import { PeerFactory } from './PeerFactory'
  */
 export abstract class AbstractNetworkStrategy<State extends NetworkState, Action extends NetworkAction> implements NetworkStrategy<State, Action> {
   network: Network<State, Action>
-  protected stagingState?: State
+  stagingState?: State
   protected peerFactory: PeerFactory
 
   constructor (network: Network<State, Action>, peerFactory: PeerFactory) {
@@ -26,21 +26,9 @@ export abstract class AbstractNetworkStrategy<State extends NetworkState, Action
     this.peerFactory = peerFactory
   }
 
-  public async dispatch (action: Action): Promise<void> {
-    if (this.stagingState !== undefined) {
-      throw new NetworkBusyError()
-    }
-    // next action
-    return await Promise.resolve()
-  }
+  public abstract dispatch (action: Action): Promise<void>
 
-  public async handleDispatch (prevState: State, action: Action): Promise<State> {
-    if (this.stagingState !== undefined) {
-      throw new NetworkBusyError()
-    }
-    // next action
-    return await Promise.resolve(prevState)
-  }
+  public abstract handleDispatch (prevState: State, action: Action): Promise<State>
 
   public async handlePromote (cs: string): Promise<void> {
     if (this.stagingState !== undefined) {

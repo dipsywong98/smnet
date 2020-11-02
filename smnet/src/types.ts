@@ -6,7 +6,7 @@ export interface NetworkState{
 }
 
 export interface PromiseHandler {
-  resolve: (data: never) => void
+  resolve: (data?: never) => void
   reject: (error: string) => void
 }
 

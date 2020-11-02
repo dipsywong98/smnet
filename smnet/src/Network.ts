@@ -1,13 +1,14 @@
 import { NetworkAction, NetworkReducer, NetworkState, Pkg, PkgType, SendResponse } from './types'
 import { PeerFactory } from './PeerFactory'
 import Peer, { DataConnection } from 'peerjs'
-import { NetworkStrategy } from './NetworkStrategy'
-import { StarHostStrategy } from './StarHostStrategy'
+import { NetworkStrategy } from './NetworkStrategies/NetworkStrategy'
+import { StarHostStrategy } from './NetworkStrategies/StarHostStrategy'
 import checksum from 'checksum'
 import { AlreadyJoinedNetworkError } from './Errors'
-import { StarMemberStrategy } from './StarMemberStrategy'
+import { StarMemberStrategy } from './NetworkStrategies/StarMemberStrategy'
 import { DataStream } from './DataStream'
 import { StateManager } from './StateManager'
+import { noConcurrentStaging } from './NetworkStrategies/NoConcurrentStagingDecorator'
 
 /**
  * The main Network class, which holds
@@ -105,7 +106,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
    * @param peerFactory
    */
   public async initAsStarHost (name: string, peerFactory: PeerFactory): Promise<void> {
-    this.networkStrategy = new StarHostStrategy(this, peerFactory)
+    this.networkStrategy = noConcurrentStaging(new StarHostStrategy(this, peerFactory))
     this.peer = await peerFactory.makeAndOpen(name)
     this.peer.on('connection', conn => {
       this.setUpConnection(conn)
@@ -123,7 +124,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
    * @param peerFactory
    */
   public async initAsStarMember (name: string, peerFactory: PeerFactory): Promise<void> {
-    this.networkStrategy = new StarMemberStrategy(this, peerFactory)
+    this.networkStrategy = noConcurrentStaging(new StarMemberStrategy(this, peerFactory))
     this.peer = await peerFactory.makeAndOpen()
     const conn = this.peer.connect(name)
     this.setUpConnection(conn)

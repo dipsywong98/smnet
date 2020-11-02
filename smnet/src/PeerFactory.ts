@@ -6,10 +6,11 @@ export class PeerFactory {
     if (options !== undefined) {
       this._options = options
     } else {
-      const peerHostConfig = process.env.REACT_APP_PEER_HOST
+      const peerHostConfig = process.env.REACT_APP_PEER_CONFIG
       if (peerHostConfig === undefined) {
         this._options = undefined
       } else {
+        console.log(peerHostConfig)
         this._options = {
           host: process.env.REACT_APP_PEER_HOST ?? 'localhost',
           port: Number.parseInt(process.env.REACT_APP_PEER_PORT ?? '9000', 10),
