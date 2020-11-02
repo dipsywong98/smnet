@@ -110,6 +110,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     this.peer.on('connection', conn => {
       this.setUpConnection(conn)
       conn.on('open', () => {
+        console.log('on new connect open send', this.getState())
         conn.send({ pkgType: PkgType.SET_STATE, data: this.getState() })
       })
     })
