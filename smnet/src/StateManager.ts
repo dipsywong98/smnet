@@ -16,7 +16,7 @@ export class StateManager<State extends NetworkState> {
 
   constructor (initialState: State, onChange?: Setter<State>) {
     this.initialState = JSON.parse(JSON.stringify(initialState)) as State
-    this._reset = () => this._set(JSON.parse(JSON.stringify(this.initialState)))
+    this._reset = () => this.set(JSON.parse(JSON.stringify(this.initialState)))
     this.state = initialState
 
     this._set = onChange ?? ((state: State) => {

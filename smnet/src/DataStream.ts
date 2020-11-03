@@ -29,7 +29,7 @@ export class DataStream {
     return await new Promise((resolve, reject) => {
       const pid = v4()
       this.sentPromises[pid] = {
-        resolve: (data: never) => resolve({ conn, data }),
+        resolve: (data?: never) => resolve({ conn, data }),
         reject: (error: string) => reject(new Error(error))
       }
       conn.send({ pid, pkgType, data })

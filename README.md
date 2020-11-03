@@ -79,6 +79,7 @@ export interface UseNetworkReturn<State extends NetworkState, Action extends Net
 
 ## TODO
 
+- [ ] better examples
 - [ ] gamenet
 - [ ] calculate ping 
 - [ ] is connected

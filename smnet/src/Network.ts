@@ -38,6 +38,10 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     this.stateReducer = stateReducer
   }
 
+  public get connected (): boolean {
+    return this.networkName !== undefined
+  }
+
   public getNetworkName (): string | undefined {
     return this.networkName
   }
@@ -77,9 +81,9 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
       this.peer.destroy()
       await promise
       this.peer = undefined
-      this.stateManager.reset()
-      this.dataStream.reset()
       this.networkName = undefined
+      this.dataStream.reset()
+      this.stateManager.reset()
     }
   }
 
@@ -98,6 +102,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     } catch (e) {
       await this.initAsStarMember(networkName, peerFactory)
     }
+    this.stateManager.reset()
   }
 
   /**

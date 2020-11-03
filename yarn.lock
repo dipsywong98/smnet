@@ -11886,6 +11886,11 @@ redent@^3.0.0:
     indent-string "^4.0.0"
     strip-indent "^3.0.0"
 
+reforml@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/reforml/-/reforml-0.2.0.tgz#8abdb38282e5faa678cf535014e10852e76ac584"
+  integrity sha512-jJyKaPI7WFPPSmgcL+7nnTPK/+DJJrT96bhos2TI+Y3QC2Xm+RpPbYzioW8+r317xWf9iRerZvkZqh+f+Ad9Qw==
+
 regenerate-unicode-properties@^8.2.0:
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/regenerate-unicode-properties/-/regenerate-unicode-properties-8.2.0.tgz#e5de7111d655e7ba60c057dbe9ff37c87e65cdec"

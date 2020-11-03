@@ -7,17 +7,16 @@ export class PeerFactory {
       this._options = options
     } else {
       const peerHostConfig = process.env.REACT_APP_PEER_CONFIG
-      if (peerHostConfig === undefined) {
+      if (peerHostConfig === undefined && process.env.REACT_APP_PEER_HOST === undefined) {
         this._options = undefined
       } else {
-        console.log(peerHostConfig)
         this._options = {
           host: process.env.REACT_APP_PEER_HOST ?? 'localhost',
           port: Number.parseInt(process.env.REACT_APP_PEER_PORT ?? '9000', 10),
           path: process.env.REACT_APP_PEER_PATH ?? '/peer',
           secure: process.env.REACT_APP_PEER_SECURE === 'true',
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          config: JSON.parse(peerHostConfig)
+          config: peerHostConfig !== undefined ? JSON.parse(peerHostConfig) : undefined
         }
       }
     }
