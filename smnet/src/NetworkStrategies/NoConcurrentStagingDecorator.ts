@@ -7,7 +7,7 @@ import { logger } from '../Logger'
 export class NoConcurrentStagingDecorator<State extends NetworkState, Action extends NetworkAction> extends AbstractNetworkStrategyDecorator<State, Action> {
   public async dispatch (action: Action): Promise<void> {
     if (this.stagingState !== undefined) {
-      logger.error('cannot dispatch with there is staging state', this.stagingState)
+      logger.error('cannot dispatch when there is staging state', this.stagingState)
       throw new NetworkBusyError()
     }
     // next action
@@ -16,7 +16,7 @@ export class NoConcurrentStagingDecorator<State extends NetworkState, Action ext
 
   public async handleDispatch (prevState: State, action: Action): Promise<State> {
     if (this.stagingState !== undefined) {
-      logger.error('cannot handle dispatch request with there is staging state', this.stagingState)
+      logger.error('cannot handle dispatch request when there is staging state', this.stagingState)
       throw new NetworkBusyError()
     }
     // next action

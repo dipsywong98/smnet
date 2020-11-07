@@ -15,4 +15,6 @@ export interface NetworkStrategy<State extends NetworkState, Action extends Netw
   forceCancel: () => void
   setUpConnection: (conn: DataConnection) => void
   isBusy: () => boolean
+  noRecovery: boolean
+  isAdmin: boolean
 }

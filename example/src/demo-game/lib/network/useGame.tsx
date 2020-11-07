@@ -7,6 +7,7 @@ import PropTypes from 'prop-types'
 
 interface GameContextInterface {
   connect: (name: string, room: string) => Promise<void>
+  leave: () => Promise<void>
   gameAppState: GameAppState
   state: GameState
   room?: string
@@ -20,6 +21,7 @@ export enum GameAppState {
 
 const GameContext = createContext<GameContextInterface>({
   connect: async () => await Promise.reject(new Error('not implemented')),
+  leave: async () => await Promise.reject(new Error('not implemented')),
   gameAppState: GameAppState.HOME,
   state: new GameState()
 })
@@ -34,19 +36,31 @@ export const GameProvider: FunctionComponent = ({ children }) => {
     })
   }
   const connect = async (name: string, room: string): Promise<void> => {
-    logger.info('connecting', room)
-    await network.join(room)
-    logger.info('entering with name', name)
-    await rename(name)
-    setGameAppState(GameAppState.ROOM)
-    logger.info('connected', room)
+    try {
+      logger.info('connecting', room)
+      await network.join(room)
+      logger.info('entering with name', name)
+      await rename(name)
+      setGameAppState(GameAppState.ROOM)
+      logger.info('connected', room)
+    } catch (e) {
+      logger.error(e)
+      await leave()
+      throw e
+    }
+  }
+  const leave = async (): Promise<void> => {
+    logger.info('leaving')
+    await network.leave()
+    setGameAppState(GameAppState.HOME)
   }
   return <GameContext.Provider
     value={{
       connect,
       gameAppState,
       state: network.state,
-      room: network.networkName
+      room: network.networkName,
+      leave: leave
     }}>
     {children}
   </GameContext.Provider>
@@ -62,6 +76,7 @@ export const withGame = (Component: FunctionComponent): FunctionComponent => {
       <Component {...props} />
     </GameProvider>
   )
+  WithGame.displayName = 'WithGame'
   return WithGame
 }
 

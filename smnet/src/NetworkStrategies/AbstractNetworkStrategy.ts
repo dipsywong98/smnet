@@ -18,6 +18,8 @@ import { logger } from '../Logger'
  *    the drawback is the user need to send their request manually later
  */
 export abstract class AbstractNetworkStrategy<State extends NetworkState, Action extends NetworkAction> implements NetworkStrategy<State, Action> {
+  isAdmin = true
+  noRecovery = false
   network: Network<State, Action>
   stagingState?: State
   protected peerFactory: PeerFactory

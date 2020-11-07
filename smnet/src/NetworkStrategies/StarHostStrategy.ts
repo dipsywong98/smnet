@@ -3,6 +3,7 @@ import Peer from 'peerjs'
 import checksum from 'checksum'
 import { AbstractNetworkStrategy } from './AbstractNetworkStrategy'
 import { logger } from '../Logger'
+import { pause } from '../pause'
 
 /**
  * Strategy of the center point of star network
@@ -62,7 +63,6 @@ export class StarHostStrategy<State extends NetworkState, Action extends Network
 
     // promote owns' state after updating all others' state
     await this.handlePromote(cs)
-    logger.info('done handle dispatch', action)
   }
 
   // other points' dispatch action will directly forward to host, and host broadcast the action
@@ -74,6 +74,20 @@ export class StarHostStrategy<State extends NetworkState, Action extends Network
 
   // no special handlers for star host
   public setUpConnection (conn: Peer.DataConnection): void {
-    // no-ops
+    conn.on('close', () => {
+      this.dispatchMemberLeft(conn.peer).catch(logger.error)
+    })
+  }
+
+  private async dispatchMemberLeft (id: string): Promise<void> {
+    try {
+      await this.network.dispatch({
+        type: 'member-left',
+        payload: id
+      } as unknown as Action)
+    } catch (e) {
+      await pause(1000)
+      await this.dispatchMemberLeft(id)
+    }
   }
 }

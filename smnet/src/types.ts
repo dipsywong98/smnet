@@ -6,6 +6,7 @@ export interface NetworkAction {
 }
 
 export interface NetworkState{
+  networkName?: string
   [key: string]: unknown | undefined
 }
 

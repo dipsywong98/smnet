@@ -18,11 +18,11 @@ export function useNetwork<State extends NetworkState = NetworkState, Action ext
   const [state, setState] = useState(initialState)
   const network = useMemo(() => new Network(reducer, StateManager.make(initialState, setState, 10)), [])
   useEffect(() => {
-    if (process.env.REACT_APP_DISABLE_SMNET_DEBUGGER !== undefined) {
+    if (process.env.REACT_APP_DISABLE_SMNET_DEBUGGER === undefined) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/ban-ts-comment
       // @ts-expect-error
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      window.stateHistory = network.getHistory; window.smnetLog = logger
+      window.stateHistory = network.getHistory; window.smnetLog = logger; window.network = network
     }
     return () => {
       network.leave()

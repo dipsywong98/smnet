@@ -86,6 +86,9 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
 
   public async leave (): Promise<void> {
     if (this.peer !== undefined) {
+      if (this.networkStrategy !== undefined) {
+        this.networkStrategy.noRecovery = true
+      }
       const promise = new Promise(resolve => this.peer?.on('close', resolve))
       this.peer.destroy()
       await promise
@@ -109,6 +112,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     try {
       await this.initAsStarHost(networkName, peerFactory)
       this.stateManager.reset()
+      this.setState({ ...this.getState(), networkName })
     } catch (e) {
       logger.info('cannot init as host, try to init as member')
       await this.initAsStarMember(networkName, peerFactory)

@@ -18,6 +18,22 @@ export abstract class AbstractNetworkStrategyDecorator<State extends NetworkStat
     return this.wrappedStrategy.network
   }
 
+  get noRecovery (): boolean {
+    return this.wrappedStrategy.noRecovery
+  }
+
+  set noRecovery (flag: boolean) {
+    this.wrappedStrategy.noRecovery = flag
+  }
+
+  get isAdmin (): boolean {
+    return this.wrappedStrategy.isAdmin
+  }
+
+  set isAdmin (flag: boolean) {
+    this.wrappedStrategy.isAdmin = flag
+  }
+
   constructor (networkStrategy: NetworkStrategy<State, Action>) {
     this.wrappedStrategy = networkStrategy
   }
