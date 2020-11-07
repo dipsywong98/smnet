@@ -2,11 +2,13 @@ import { DataConnection } from 'peerjs'
 
 export interface NetworkAction {
   peerId?: string
+
   [key: string]: unknown | undefined
 }
 
-export interface NetworkState{
+export interface NetworkState {
   networkName?: string
+
   [key: string]: unknown | undefined
 }
 
@@ -16,13 +18,13 @@ export interface PromiseHandler {
 }
 
 export enum PkgType {
-  DISPATCH,
-  ACK,
-  NACK,
-  PROMOTE,
-  CANCEL,
-  SET_STATE,
-  ASK_STATE,
+  DISPATCH = 'DISPATCH',
+  ACK = 'ACK',
+  NACK = 'NACK',
+  PROMOTE = 'PROMOTE',
+  CANCEL = 'CANCEL',
+  SET_STATE = 'SET_STATE',
+  ASK_STATE = 'ASK_STATE',
 }
 
 export type Pkg<State extends NetworkState, Action extends NetworkAction> = (

@@ -8,6 +8,11 @@ export const gameReducer: NetworkReducer<GameState, GameAction> = (prevState, ac
     throw new Error('expect peerId in action')
   }
   switch (action.type) {
+    case GameActionTypes.MEMBER_JOIN:
+      if (Object.values(prevState.members).length >= prevState.maxPlayer) {
+        throw new Error(`room reached maximum number of players which is ${prevState.maxPlayer}`)
+      }
+      return { ...prevState, members: { ...prevState.members, [peerId]: '' } }
     case GameActionTypes.RENAME:
       if (Object.values(prevState.members).includes(action.payload)) {
         throw new Error(`there is already someone named ${action.payload}`)

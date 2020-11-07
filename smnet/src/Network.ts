@@ -117,6 +117,9 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
       logger.info('cannot init as host, try to init as member')
       await this.initAsStarMember(networkName, peerFactory)
     }
+    await this.dispatch({
+      type: 'member-join'
+    } as unknown as Action)
   }
 
   /**
@@ -215,7 +218,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
    */
   private dataHandler (pkg: Pkg<State, Action>, conn: Peer.DataConnection): void {
     const { pid, pkgType, data } = pkg
-    logger.debug('received pkg from', conn, pkg)
+    logger.debug('received pkg from', conn.peer, pkg)
     switch (pkgType) {
       case PkgType.DISPATCH:
         // ack with new state's checksum

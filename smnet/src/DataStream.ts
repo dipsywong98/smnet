@@ -32,7 +32,7 @@ export class DataStream {
         resolve: (data?: never) => resolve({ conn, data }),
         reject: (error: string) => reject(new Error(error))
       }
-      conn.send({ pid, pkgType, data })
+      conn.send({ pkgType, data, pid })
     })
   }
 
