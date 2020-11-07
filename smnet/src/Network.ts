@@ -38,6 +38,10 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     this.stateReducer = stateReducer
   }
 
+  public get myId (): string | undefined {
+    return this.peer?.id
+  }
+
   public get connected (): boolean {
     return this.networkName !== undefined
   }
@@ -56,6 +60,10 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
 
   public get state (): State {
     return this.getState()
+  }
+
+  public getHistory = (): State[] => {
+    return this.stateManager.getHistory()
   }
 
   /**
@@ -115,10 +123,6 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     this.peer = await peerFactory.makeAndOpen(name)
     this.peer.on('connection', conn => {
       this.setUpConnection(conn)
-      conn.on('open', () => {
-        console.log('on new connect open send', this.getState())
-        conn.send({ pkgType: PkgType.SET_STATE, data: this.getState() })
-      })
     })
     this.networkName = name
   }
@@ -129,12 +133,26 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
    * @param peerFactory
    */
   public async initAsStarMember (name: string, peerFactory: PeerFactory): Promise<void> {
+    console.log('initing as star member')
     this.networkStrategy = noConcurrentStaging(new StarMemberStrategy(this, peerFactory))
     this.peer = await peerFactory.makeAndOpen()
+    console.log('opened peer')
     const conn = this.peer.connect(name)
     this.setUpConnection(conn)
+    await new Promise((resolve, reject) => {
+      conn.on('open', () => {
+        resolve()
+      })
+      conn.on('error', err => {
+        reject(err)
+      })
+    })
     this.dataStream.registerConnection(conn)
     this.networkName = name
+    const { data } = await this.dataStream.send<undefined, State>(name, PkgType.ASK_STATE, undefined)
+    if (data !== undefined) {
+      this.setState(data)
+    }
   }
 
   /**
@@ -156,6 +174,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
   }
 
   public async dispatch (action: Action): Promise<void> {
+    action.peerId = this.myId
     await this.networkStrategy?.dispatch(action)
   }
 
@@ -214,6 +233,9 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
         // ignore whatever staging state, just set state and cancel the staging state
         this.setState(data)
         this.networkStrategy?.forceCancel()
+        break
+      case PkgType.ASK_STATE:
+        this.dataStream.sendACK(conn, pid, this.state)
     }
   }
 }

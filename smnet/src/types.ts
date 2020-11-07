@@ -1,6 +1,10 @@
 import { DataConnection } from 'peerjs'
 
-export type NetworkAction = Record<string, unknown>
+export interface NetworkAction {
+  peerId?: string
+  [key: string]: unknown | undefined
+}
+
 export interface NetworkState{
   [key: string]: unknown | undefined
 }
@@ -17,7 +21,7 @@ export enum PkgType {
   PROMOTE,
   CANCEL,
   SET_STATE,
-
+  ASK_STATE,
 }
 
 export type Pkg<State extends NetworkState, Action extends NetworkAction> = (
@@ -26,6 +30,7 @@ export type Pkg<State extends NetworkState, Action extends NetworkAction> = (
   | { pkgType: PkgType.NACK, data: string }
   | { pkgType: PkgType.CANCEL, data: string }
   | { pkgType: PkgType.SET_STATE, data: NetworkState }
+  | { pkgType: PkgType.ASK_STATE }
   | { pkgType: PkgType }) & { pid?: string, data: never }
 
 export type NetworkReducer<State extends NetworkState, Action extends NetworkAction> = (prevState: State, action: Action) => State

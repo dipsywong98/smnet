@@ -1,4 +1,5 @@
 import { NetworkState } from './types'
+import cloneDeep from 'clone-deep'
 
 type Setter<State extends NetworkState> = (state: State) => void
 
@@ -13,10 +14,13 @@ export class StateManager<State extends NetworkState> {
   private readonly _reset: Resetter
   private readonly initialState!: State
   private state!: State
+  private readonly history: State[] = []
+  private readonly historyMax: number
 
-  constructor (initialState: State, onChange?: Setter<State>) {
-    this.initialState = JSON.parse(JSON.stringify(initialState)) as State
-    this._reset = () => this.set(JSON.parse(JSON.stringify(this.initialState)))
+  constructor (initialState: State, onChange?: Setter<State>, historyMax = 0) {
+    this.historyMax = historyMax
+    this.initialState = cloneDeep(initialState)
+    this._reset = () => this.set(cloneDeep(this.initialState))
     this.state = initialState
 
     this._set = onChange ?? ((state: State) => {
@@ -29,7 +33,14 @@ export class StateManager<State extends NetworkState> {
   }
 
   public set (state: State): void {
+    console.trace('set state', state)
     this.state = state
+    if (this.historyMax > 0) {
+      if (this.history.length >= this.historyMax) {
+        this.history.shift()
+      }
+      this.history.push(cloneDeep(state))
+    }
     this._set({ ...state })
   }
 
@@ -37,7 +48,11 @@ export class StateManager<State extends NetworkState> {
     this._reset()
   }
 
-  static make<State extends NetworkState> (initialState: State, onChange?: Setter<State>): StateManager<State> {
-    return new StateManager<State>(initialState, onChange)
+  public getHistory (): State[] {
+    return this.history
+  }
+
+  static make<State extends NetworkState> (initialState: State, onChange?: Setter<State>, historyMax?: number): StateManager<State> {
+    return new StateManager<State>(initialState, onChange, historyMax)
   }
 }

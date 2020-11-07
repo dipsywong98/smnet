@@ -2621,6 +2621,11 @@
   resolved "https://registry.yarnpkg.com/@types/checksum/-/checksum-0.1.31.tgz#193c07925925c09278c35dc3d238bc345e180ea3"
   integrity sha512-SjW2SQ3VPcqYEK3xBS0yUUmVhJV4hBtjNh6cKuRvfu15IVlw6bC/MEv+dBASUGM1xDRSvd2j5LSuJxDJGyz0Ng==
 
+"@types/clone-deep@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@types/clone-deep/-/clone-deep-4.0.1.tgz#7c488443ab9f571cd343d774551b78e9264ea990"
+  integrity sha512-bdkCSkyVHsgl3Goe1y16T9k6JuQx7SiDREkq728QjKmTZkGJZuS8R3gGcnGzVuGBP0mssKrzM/GlMOQxtip9cg==
+
 "@types/eslint-visitor-keys@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"
