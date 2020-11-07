@@ -10,6 +10,8 @@ export const GameApp: FunctionComponent = withGame(() => {
       return <Home />
     case GameAppState.ROOM:
       return <Room />
+    case GameAppState.GAME:
+      return <div>in game</div>
     default:
       throw new Error('unknown state')
   }

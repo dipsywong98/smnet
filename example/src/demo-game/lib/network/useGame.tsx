@@ -14,6 +14,8 @@ interface GameContextInterface {
   isAdmin: boolean
   myId?: string
   kick: (id: string) => Promise<void>
+  ready: () => Promise<void>
+  start: () => Promise<void>
 }
 
 export enum GameAppState {
@@ -26,6 +28,8 @@ const GameContext = createContext<GameContextInterface>({
   connect: async () => await Promise.reject(new Error('not implemented')),
   leave: async () => await Promise.reject(new Error('not implemented')),
   kick: async () => await Promise.reject(new Error('not implemented')),
+  ready: async () => await Promise.reject(new Error('not implemented')),
+  start: async () => await Promise.reject(new Error('not implemented')),
   gameAppState: GameAppState.HOME,
   state: new GameState(),
   isAdmin: false
@@ -39,6 +43,17 @@ export const GameProvider: FunctionComponent = ({ children }) => {
       type: GameActionTypes.RENAME,
       payload: name
     })
+  }
+  const ready = async (): Promise<void> => {
+    await network.dispatch({
+      type: GameActionTypes.READY
+    })
+  }
+  const start = async (): Promise<void> => {
+    await network.dispatch({
+      type: GameActionTypes.START
+    })
+    setGameAppState(GameAppState.GAME)
   }
   const connect = async (name: string, room: string): Promise<void> => {
     try {
@@ -73,7 +88,9 @@ export const GameProvider: FunctionComponent = ({ children }) => {
       leave,
       isAdmin: network.isAdmin,
       myId: network.myId,
-      kick: network.kick
+      kick: network.kick,
+      ready,
+      start
     }}>
     {children}
   </GameContext.Provider>

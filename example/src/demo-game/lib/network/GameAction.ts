@@ -10,6 +10,10 @@ export type GameAction = ({
   type: GameActionTypes.HOST_LEFT
   payload: string
 } | {
+  type: GameActionTypes.READY
+} | {
+  type: GameActionTypes.START
+} | {
   type: GameActionTypes.MEMBER_JOIN
 }) & NetworkAction
 
@@ -18,4 +22,6 @@ export enum GameActionTypes {
   MEMBER_LEFT = 'member-left',
   HOST_LEFT = 'host-left',
   RENAME = 0,
+  READY,
+  START,
 }

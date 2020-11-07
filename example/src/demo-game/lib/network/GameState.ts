@@ -7,4 +7,5 @@ export class GameState implements NetworkState {
   networkName?: string
   members: { [peerId: string]: string | undefined } = {}
   ready: {[peerId: string]: boolean | undefined} = {}
+  started = false
 }
