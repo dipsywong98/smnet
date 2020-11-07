@@ -80,14 +80,16 @@ export class StarHostStrategy<State extends NetworkState, Action extends Network
   }
 
   private async dispatchMemberLeft (id: string): Promise<void> {
-    try {
-      await this.network.dispatch({
-        type: 'member-left',
-        payload: id
-      } as unknown as Action)
-    } catch (e) {
-      await pause(1000)
-      await this.dispatchMemberLeft(id)
+    if (!this.leaving) {
+      try {
+        await this.network.dispatch({
+          type: 'member-left',
+          payload: id
+        } as unknown as Action)
+      } catch (e) {
+        await pause(1000)
+        await this.dispatchMemberLeft(id)
+      }
     }
   }
 }

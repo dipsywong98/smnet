@@ -67,6 +67,10 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     return this.stateManager.getHistory()
   }
 
+  public get isAdmin (): boolean {
+    return this.networkStrategy?.isAdmin ?? false
+  }
+
   /**
    * reduce a given state which changing owns' state
    * @param prevState
@@ -84,10 +88,18 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     this.stateManager.set(this.stateReducer(this.stateManager.get(), action))
   }
 
+  public kick = async (id: string): Promise<void> => {
+    if (this.getNeighbor()?.includes(id) ?? false) {
+      await this.send(id, PkgType.KICK, id)
+    } else {
+      await this.broadcast(PkgType.KICK, id)
+    }
+  }
+
   public async leave (): Promise<void> {
     if (this.peer !== undefined) {
       if (this.networkStrategy !== undefined) {
-        this.networkStrategy.noRecovery = true
+        this.networkStrategy.leaving = true
       }
       const promise = new Promise(resolve => this.peer?.on('close', resolve))
       this.peer.destroy()
@@ -129,13 +141,15 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
    */
   public async initAsStarHost (name: string, peerFactory: PeerFactory): Promise<void> {
     logger.info('initing as host')
-    this.networkStrategy = noConcurrentStaging(new StarHostStrategy(this, peerFactory))
+    const oldPeer = this.peer
     this.peer = await peerFactory.makeAndOpen(name)
     this.peer.on('connection', conn => {
       logger.info('received connection with', conn.peer)
       this.setUpConnection(conn)
     })
     this.networkName = name
+    this.networkStrategy = noConcurrentStaging(new StarHostStrategy(this, peerFactory))
+    oldPeer?.destroy()
     logger.info('inited as host')
   }
 
@@ -149,6 +163,11 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     this.networkStrategy = noConcurrentStaging(new StarMemberStrategy(this, peerFactory))
     this.peer = await peerFactory.makeAndOpen()
     logger.info('opened peer')
+    await this.reconnectToHost(name)
+  }
+
+  public async reconnectToHost (name: string): Promise<void> {
+    if (this.peer === undefined) return
     const conn = this.peer.connect(name)
     this.setUpConnection(conn)
     await new Promise((resolve, reject) => {
@@ -191,9 +210,13 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
 
   public async dispatch (action: Action): Promise<void> {
     action.peerId = this.myId
-    logger.info('dispatching action', action)
-    await this.networkStrategy?.dispatch(action)
-    logger.info('dispatched action', action)
+    if (this.myId !== undefined && this.myId !== null) {
+      logger.info('dispatching action', action)
+      await this.networkStrategy?.dispatch(action)
+      logger.info('dispatched action', action)
+    } else {
+      logger.error('not connected')
+    }
   }
 
   private setUpConnection (conn: DataConnection): void {
@@ -257,6 +280,14 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
         break
       case PkgType.ASK_STATE:
         this.dataStream.sendACK(conn, pid, this.state)
+        break
+      case PkgType.KICK:
+        if (data === this.myId) {
+          logger.info('you got kicked by network admin')
+          this.leave().catch(logger.error)
+        } else {
+          this.send(data, pkgType, data).catch(logger.error)
+        }
     }
   }
 }

@@ -19,7 +19,7 @@ import { logger } from '../Logger'
  */
 export abstract class AbstractNetworkStrategy<State extends NetworkState, Action extends NetworkAction> implements NetworkStrategy<State, Action> {
   isAdmin = true
-  noRecovery = false
+  leaving = false
   network: Network<State, Action>
   stagingState?: State
   protected peerFactory: PeerFactory

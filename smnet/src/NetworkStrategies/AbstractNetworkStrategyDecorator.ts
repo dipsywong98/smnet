@@ -18,12 +18,12 @@ export abstract class AbstractNetworkStrategyDecorator<State extends NetworkStat
     return this.wrappedStrategy.network
   }
 
-  get noRecovery (): boolean {
-    return this.wrappedStrategy.noRecovery
+  get leaving (): boolean {
+    return this.wrappedStrategy.leaving
   }
 
-  set noRecovery (flag: boolean) {
-    this.wrappedStrategy.noRecovery = flag
+  set leaving (flag: boolean) {
+    this.wrappedStrategy.leaving = flag
   }
 
   get isAdmin (): boolean {

@@ -2,7 +2,7 @@ import { logger, useNetwork } from 'smnet'
 import { gameReducer } from './GameReducer'
 import { GameState } from './GameState'
 import { GameActionTypes } from './GameAction'
-import React, { createContext, FunctionComponent, useContext, useState } from 'react'
+import React, { createContext, FunctionComponent, useContext, useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 
 interface GameContextInterface {
@@ -11,6 +11,9 @@ interface GameContextInterface {
   gameAppState: GameAppState
   state: GameState
   room?: string
+  isAdmin: boolean
+  myId?: string
+  kick: (id: string) => Promise<void>
 }
 
 export enum GameAppState {
@@ -22,8 +25,10 @@ export enum GameAppState {
 const GameContext = createContext<GameContextInterface>({
   connect: async () => await Promise.reject(new Error('not implemented')),
   leave: async () => await Promise.reject(new Error('not implemented')),
+  kick: async () => await Promise.reject(new Error('not implemented')),
   gameAppState: GameAppState.HOME,
-  state: new GameState()
+  state: new GameState(),
+  isAdmin: false
 })
 
 export const GameProvider: FunctionComponent = ({ children }) => {
@@ -54,13 +59,21 @@ export const GameProvider: FunctionComponent = ({ children }) => {
     await network.leave()
     setGameAppState(GameAppState.HOME)
   }
+  useEffect(() => {
+    if (network.networkName === undefined) {
+      setGameAppState(GameAppState.HOME)
+    }
+  }, [network.networkName])
   return <GameContext.Provider
     value={{
       connect,
       gameAppState,
       state: network.state,
       room: network.networkName,
-      leave: leave
+      leave,
+      isAdmin: network.isAdmin,
+      myId: network.myId,
+      kick: network.kick
     }}>
     {children}
   </GameContext.Provider>

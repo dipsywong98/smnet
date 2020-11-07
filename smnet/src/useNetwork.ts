@@ -12,6 +12,9 @@ export interface UseNetworkReturn<State extends NetworkState, Action extends Net
   join: (networkName: string, peerFactory?: PeerFactory) => Promise<void>
   leave: () => Promise<void>
   dispatch: (action: Action) => Promise<void>
+  isAdmin: boolean
+  myId?: string
+  kick: (id: string) => Promise<void>
 }
 
 export function useNetwork<State extends NetworkState = NetworkState, Action extends NetworkAction = NetworkAction> (reducer: NetworkReducer<State, Action>, initialState: State): UseNetworkReturn<State, Action> {
@@ -35,6 +38,9 @@ export function useNetwork<State extends NetworkState = NetworkState, Action ext
     dispatch: network.dispatch.bind(network),
     state,
     connected: network.connected,
-    networkName: network.getNetworkName()
+    networkName: network.getNetworkName(),
+    isAdmin: network.isAdmin,
+    myId: network.myId,
+    kick: network.kick
   })
 }

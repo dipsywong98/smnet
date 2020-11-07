@@ -10,6 +10,7 @@ import { logger } from '../Logger'
  */
 export class StarMemberStrategy<State extends NetworkState, Action extends NetworkAction> extends AbstractNetworkStrategy<State, Action> {
   isAdmin = false
+
   // just forward the dispatch to host
   public async dispatch (action: Action): Promise<void> {
     await this.network.broadcast(PkgType.DISPATCH, action)
@@ -25,7 +26,7 @@ export class StarMemberStrategy<State extends NetworkState, Action extends Netwo
   // it will try to be the new host or reconnect to new host
   public setUpConnection (conn: Peer.DataConnection): void {
     conn.on('close', () => {
-      if (!this.noRecovery) {
+      if (!this.leaving) {
         this.recover().catch(logger.error)
       }
     })
@@ -34,20 +35,17 @@ export class StarMemberStrategy<State extends NetworkState, Action extends Netwo
   private async recover (): Promise<void> {
     const name = this.network.getNetworkName()
     if (name !== undefined) {
-      if (!this.isBusy()) {
-        try {
-          const oldId = this.network.myId
-          await this.network.initAsStarHost(name, this.peerFactory)
-          logger.info('became the new host, changed peerId, notify others')
-          if (oldId !== undefined) {
-            await this.dispatchHostLeft(oldId)
-          }
-        } catch (e) {
-          await this.network.initAsStarMember(name, this.peerFactory)
+      try {
+        const oldId = this.network.myId
+        logger.debug('oldId', oldId)
+        await this.network.initAsStarHost(name, this.peerFactory)
+        logger.info('became the new host, changed peerId, notify others')
+        if (oldId !== undefined) {
+          await this.dispatchHostLeft(oldId)
         }
-      } else {
-        await pause(500)
-        await this.recover()
+      } catch (e) {
+        await this.network.reconnectToHost(name)
+        // await this.network.connectToHost()
       }
     }
   }
