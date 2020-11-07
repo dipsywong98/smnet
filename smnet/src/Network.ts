@@ -9,6 +9,7 @@ import { StarMemberStrategy } from './NetworkStrategies/StarMemberStrategy'
 import { DataStream } from './DataStream'
 import { StateManager } from './StateManager'
 import { noConcurrentStaging } from './NetworkStrategies/NoConcurrentStagingDecorator'
+import { logger } from './Logger'
 
 /**
  * The main Network class, which holds
@@ -107,10 +108,11 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     peerFactory = peerFactory ?? new PeerFactory()
     try {
       await this.initAsStarHost(networkName, peerFactory)
+      this.stateManager.reset()
     } catch (e) {
+      logger.info('cannot init as host, try to init as member')
       await this.initAsStarMember(networkName, peerFactory)
     }
-    this.stateManager.reset()
   }
 
   /**
@@ -119,12 +121,15 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
    * @param peerFactory
    */
   public async initAsStarHost (name: string, peerFactory: PeerFactory): Promise<void> {
+    logger.info('initing as host')
     this.networkStrategy = noConcurrentStaging(new StarHostStrategy(this, peerFactory))
     this.peer = await peerFactory.makeAndOpen(name)
     this.peer.on('connection', conn => {
+      logger.info('received connection with', conn.peer)
       this.setUpConnection(conn)
     })
     this.networkName = name
+    logger.info('inited as host')
   }
 
   /**
@@ -133,10 +138,10 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
    * @param peerFactory
    */
   public async initAsStarMember (name: string, peerFactory: PeerFactory): Promise<void> {
-    console.log('initing as star member')
+    logger.info('initing as member')
     this.networkStrategy = noConcurrentStaging(new StarMemberStrategy(this, peerFactory))
     this.peer = await peerFactory.makeAndOpen()
-    console.log('opened peer')
+    logger.info('opened peer')
     const conn = this.peer.connect(name)
     this.setUpConnection(conn)
     await new Promise((resolve, reject) => {
@@ -147,12 +152,16 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
         reject(err)
       })
     })
+    logger.info('opened connection with host')
     this.dataStream.registerConnection(conn)
     this.networkName = name
+    logger.info('requesting state from host')
     const { data } = await this.dataStream.send<undefined, State>(name, PkgType.ASK_STATE, undefined)
     if (data !== undefined) {
+      logger.info('updating the state got from host', data)
       this.setState(data)
     }
+    logger.info('inited as member')
   }
 
   /**
@@ -175,14 +184,18 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
 
   public async dispatch (action: Action): Promise<void> {
     action.peerId = this.myId
+    logger.info('dispatching action', action)
     await this.networkStrategy?.dispatch(action)
+    logger.info('dispatched action', action)
   }
 
   private setUpConnection (conn: DataConnection): void {
     conn.on('open', () => {
+      logger.info('opened connection with', conn.peer)
       this.dataStream.registerConnection(conn)
     })
     conn.on('close', () => {
+      logger.info('closed connection with', conn.peer)
       this.dataStream.unregisterConnection(conn)
     })
     conn.on('data', (pkg: Pkg<State, Action>) => this.dataHandler(pkg, conn))
@@ -198,6 +211,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
    */
   private dataHandler (pkg: Pkg<State, Action>, conn: Peer.DataConnection): void {
     const { pid, pkgType, data } = pkg
+    logger.debug('received pkg from', conn, pkg)
     switch (pkgType) {
       case PkgType.DISPATCH:
         // ack with new state's checksum

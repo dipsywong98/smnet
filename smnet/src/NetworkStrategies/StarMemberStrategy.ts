@@ -2,6 +2,7 @@ import { NetworkAction, NetworkState, PkgType } from '../types'
 import Peer from 'peerjs'
 import { AbstractNetworkStrategy } from './AbstractNetworkStrategy'
 import { pause } from '../pause'
+import { logger } from '../Logger'
 
 /**
  * Strategy of the non-center point of star network
@@ -23,7 +24,7 @@ export class StarMemberStrategy<State extends NetworkState, Action extends Netwo
   // it will try to be the new host or reconnect to new host
   public setUpConnection (conn: Peer.DataConnection): void {
     conn.on('close', () => {
-      this.recover().catch(console.error)
+      this.recover().catch(logger.error)
     })
   }
 

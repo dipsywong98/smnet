@@ -1,4 +1,4 @@
-import { useNetwork } from 'smnet'
+import { logger, useNetwork } from 'smnet'
 import { gameReducer } from './GameReducer'
 import { GameState } from './GameState'
 import { GameActionTypes } from './GameAction'
@@ -34,11 +34,12 @@ export const GameProvider: FunctionComponent = ({ children }) => {
     })
   }
   const connect = async (name: string, room: string): Promise<void> => {
-    console.log('connecting')
+    logger.info('connecting', room)
     await network.join(room)
+    logger.info('entering with name', name)
     await rename(name)
     setGameAppState(GameAppState.ROOM)
-    console.log('connected')
+    logger.info('connected', room)
   }
   return <GameContext.Provider
     value={{

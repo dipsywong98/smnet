@@ -1,7 +1,7 @@
 import React, { FunctionComponent, useState } from 'react'
 import 'reforml/dist/index.css'
 import './App.css'
-import { NetworkState, PeerFactory, useNetwork } from 'smnet'
+import { logger, NetworkState, PeerFactory, useNetwork } from 'smnet'
 import { BaseForm, FormValue } from 'reforml'
 
 interface MyState extends NetworkState {
@@ -108,9 +108,9 @@ const DemoCustomPeer: FunctionComponent = () => {
   const join = async (): Promise<void> => {
     if (options.networkName !== undefined) {
       await network.join(options.networkName, new PeerFactory(options.peerOptions))
-        .then(() => console.log('connected'))
+        .then(() => logger.log('connected'))
         .catch((e: Error) => {
-          console.error(e)
+          logger.error(e)
           window.alert('Error when connecting')
         })
     }
@@ -132,7 +132,7 @@ const DemoCustomPeer: FunctionComponent = () => {
       : (
         <div>
           <div style={{ margin: 'auto' }}>
-            <div>Network State: {network.connected ? `connected to ${network.networkName}` : 'disconnected'}</div>
+            <div>Network State: {network.connected ? `connected to ${network.networkName ?? 'unknown network'}` : 'disconnected'}</div>
             <pre>
               {JSON.stringify(network.state, null, 2)}
             </pre>
@@ -146,7 +146,7 @@ const DemoCustomPeer: FunctionComponent = () => {
                 className='form-control'
                 value={network.state.foo ?? ''}
                 onChange={({ target: { value } }) => {
-                  network.dispatch({ type: 'set-foo', payload: value }).catch(console.error)
+                  network.dispatch({ type: 'set-foo', payload: value }).catch(logger.error)
                 }}
               />
             </label>
@@ -161,7 +161,7 @@ const DemoCustomPeer: FunctionComponent = () => {
                 className='form-control'
                 value={network.state.pause}
                 onChange={({ target: { value } }) => {
-                  network.dispatch({ type: 'pause', payload: Number.parseInt(value) }).catch(console.error)
+                  network.dispatch({ type: 'pause', payload: Number.parseInt(value) }).catch(logger.error)
                 }}
               />
             </label>
@@ -169,18 +169,18 @@ const DemoCustomPeer: FunctionComponent = () => {
           <div style={{ marginTop: '8px' }}>
             <button
               onClick={(): void => {
-                network.dispatch({ type: '' }).catch(e => {
+                network.dispatch({ type: '' }).catch((e: Error) => {
                   window.alert(e.message)
-                  console.error(e)
+                  logger.error(e)
                 })
               }}>
               send error
             </button>
             <button
               onClick={(): void => {
-                network.leave().catch(e => {
+                network.leave().catch((e: Error) => {
                   window.alert(e.message)
-                  console.error(e)
+                  logger.error(e)
                 })
               }}>
               leave

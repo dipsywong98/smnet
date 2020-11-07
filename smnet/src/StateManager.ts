@@ -33,7 +33,6 @@ export class StateManager<State extends NetworkState> {
   }
 
   public set (state: State): void {
-    console.trace('set state', state)
     this.state = state
     if (this.historyMax > 0) {
       if (this.history.length >= this.historyMax) {

@@ -3,6 +3,7 @@ import { NetworkAction, NetworkReducer, NetworkState } from './types'
 import { Network } from './Network'
 import { StateManager } from './StateManager'
 import { PeerFactory } from './PeerFactory'
+import { logger } from './Logger'
 
 export interface UseNetworkReturn<State extends NetworkState, Action extends NetworkAction> {
   state: State
@@ -17,15 +18,15 @@ export function useNetwork<State extends NetworkState = NetworkState, Action ext
   const [state, setState] = useState(initialState)
   const network = useMemo(() => new Network(reducer, StateManager.make(initialState, setState, 10)), [])
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.REACT_APP_DISABLE_SMNET_DEBUGGER !== undefined) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/ban-ts-comment
       // @ts-expect-error
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      window.stateHistory = network.getHistory
+      window.stateHistory = network.getHistory; window.smnetLog = logger
     }
     return () => {
       network.leave()
-        .catch(console.error)
+        .catch(logger.error)
     }
   }, [network])
   return Object.freeze({

@@ -5,6 +5,7 @@ import Peer from 'peerjs'
 import checksum from 'checksum'
 import { NoStagingStateError } from '../Errors'
 import { PeerFactory } from '../PeerFactory'
+import { logger } from '../Logger'
 
 /**
  * AbstractNetworkStrategies is the base class of all other NetworkStrategies, it
@@ -32,13 +33,17 @@ export abstract class AbstractNetworkStrategy<State extends NetworkState, Action
 
   public async handlePromote (cs: string): Promise<void> {
     if (this.stagingState !== undefined) {
-      if (checksum(JSON.stringify(this.stagingState)) === cs) {
+      const stagingChecksum = checksum(JSON.stringify(this.stagingState))
+      if (stagingChecksum === cs) {
         this.network.setState(this.stagingState)
+        logger.info('promoted the stagingState', this.stagingState)
         this.stagingState = undefined
       } else {
+        logger.error(`Cannot promote, staging checksum is ${stagingChecksum} while requested to promote checksum of ${cs}`)
         throw new Error('Cannot promote staging state with unmatched checksum')
       }
     } else {
+      logger.error('Cannot promote, there is no staging state')
       throw new NoStagingStateError()
     }
     return await Promise.resolve()
@@ -46,18 +51,23 @@ export abstract class AbstractNetworkStrategy<State extends NetworkState, Action
 
   public async handleCancel (cs: string): Promise<void> {
     if (this.stagingState !== undefined) {
-      if (checksum(JSON.stringify(this.stagingState)) === cs) {
+      const stagingChecksum = checksum(JSON.stringify(this.stagingState))
+      if (stagingChecksum === cs) {
+        logger.info('canceled the stagingState', this.stagingState)
         this.stagingState = undefined
       } else {
+        logger.error(`Cannot cancel, staging checksum is ${stagingChecksum} while requested to cancel checksum of ${cs}`)
         throw new Error('Cannot cancel staging state with unmatched checksum')
       }
     } else {
+      logger.error('Cannot cancel, there is no staging state')
       throw new NoStagingStateError()
     }
     return await Promise.resolve()
   }
 
   public forceCancel (): void {
+    logger.info('force cancel the stagingState')
     this.stagingState = undefined
   }
 
