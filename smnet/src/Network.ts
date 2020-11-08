@@ -283,7 +283,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
         break
       case PkgType.KICK:
         if (data === this.myId) {
-          logger.info('you got kicked by network admin')
+          logger.info('you got kicked out of network')
           this.leave().catch(logger.error)
         } else {
           this.send(data, pkgType, data).catch(logger.error)

@@ -19,6 +19,7 @@
   "scripts": {
     "watch:smnet": "yarn workspace smnet watch",
     "watch:gamenet": "yarn workspace gamenet watch",
-    "start:example": "yarn workspace example start"
+    "start:example": "yarn workspace example start",
+    "dev": "run-p start:* watch:*"
   }
 }

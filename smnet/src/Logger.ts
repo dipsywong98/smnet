@@ -163,7 +163,7 @@ export const createLogger = (): Logger => {
 
 export const logger = createLogger()
 
-if (process.env.REACT_APP_DEBUG_SMNET !== undefined) {
+if (process.env.REACT_APP_SMNET_VERBOSE_ALL_NO_HISTORY !== undefined) {
   logger.historyLevel = LoggerLevel.OFF
   logger.verboseLevel = LoggerLevel.ALL
 }
