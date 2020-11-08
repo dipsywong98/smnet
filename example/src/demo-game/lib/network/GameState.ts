@@ -5,7 +5,21 @@ export class GameState implements NetworkState {
   minPlayer = 1
   maxPlayer = 4
   networkName?: string
-  members: { [peerId: string]: string | undefined } = {}
-  ready: {[peerId: string]: boolean | undefined} = {}
+  /**
+   * all connected members and their names
+   */
+  members: { [peerId: string]: string } = {}
+  /**
+   * peerId in this dict iff not playing
+   */
+  spectators: { [peerId: string]: true } = {}
+  /**
+   * name to in game id map
+   */
+  nameDict: { [name: string]: number } = {}
+  /**
+   * peerId in ready iff ready
+   */
+  ready: {[peerId: string]: true } = {}
   started = false
 }

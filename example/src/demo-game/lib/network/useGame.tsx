@@ -53,7 +53,6 @@ export const GameProvider: FunctionComponent = ({ children }) => {
     await network.dispatch({
       type: GameActionTypes.START
     })
-    setGameAppState(GameAppState.GAME)
   }
   const connect = async (name: string, room: string): Promise<void> => {
     try {
@@ -61,7 +60,6 @@ export const GameProvider: FunctionComponent = ({ children }) => {
       await network.join(room)
       logger.info('entering with name', name)
       await rename(name)
-      setGameAppState(GameAppState.ROOM)
       logger.info('connected', room)
     } catch (e) {
       logger.error(e)
@@ -72,13 +70,21 @@ export const GameProvider: FunctionComponent = ({ children }) => {
   const leave = async (): Promise<void> => {
     logger.info('leaving')
     await network.leave()
-    setGameAppState(GameAppState.HOME)
   }
+  // useEffect(() => {
+  //   if (network.networkName === undefined) {
+  //     setGameAppState(GameAppState.HOME)
+  //   }
+  // }, [network.networkName])
   useEffect(() => {
-    if (network.networkName === undefined) {
+    if (network.state.started && network.networkName !== undefined) {
+      setGameAppState(GameAppState.GAME)
+    } else if (network.networkName !== undefined) {
+      setGameAppState(GameAppState.ROOM)
+    } else {
       setGameAppState(GameAppState.HOME)
     }
-  }, [network.networkName])
+  }, [network.state, network.networkName])
   return <GameContext.Provider
     value={{
       connect,
