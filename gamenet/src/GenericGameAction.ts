@@ -1,6 +1,6 @@
 import { NetworkAction } from 'smnet'
 
-export type GameAction = ({
+export type GenericGameAction = ({
   type: GameActionTypes.RENAME
   payload: string
 } | {

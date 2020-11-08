@@ -1,6 +1,6 @@
 import { NetworkReducer } from 'smnet'
-import { GameState } from './GameState'
-import { GameAction, GameActionTypes } from './GameAction'
+import { GenericGameState } from './GenericGameState'
+import { GameActionTypes, GenericGameAction } from './GenericGameAction'
 
 const shuffle = <T> (a: T[]): T[] => {
   for (let i = a.length - 1; i > 0; i--) {
@@ -10,7 +10,7 @@ const shuffle = <T> (a: T[]): T[] => {
   return a
 }
 
-const withShuffleId: NetworkReducer<GameState, GameAction> = (prevState) => {
+const withShuffleId: NetworkReducer<GenericGameState, GenericGameAction> = (prevState) => {
   const membersNames = shuffle(Object.values(prevState.members))
   const nameDict: Record<string, number> = {}
   membersNames.forEach((name, id) => {
@@ -19,7 +19,7 @@ const withShuffleId: NetworkReducer<GameState, GameAction> = (prevState) => {
   return { ...prevState, nameDict }
 }
 
-export const gameReducer: NetworkReducer<GameState, GameAction> = (prevState, action) => {
+export const generalGameReducer: NetworkReducer<GenericGameState, GenericGameAction> = (prevState, action) => {
   const peerId = action.peerId
   if (peerId === undefined) {
     throw new Error('expect peerId in action')
@@ -30,7 +30,7 @@ export const gameReducer: NetworkReducer<GameState, GameAction> = (prevState, ac
   }
   switch (action.type) {
     case GameActionTypes.MEMBER_JOIN:
-      if (Object.values(prevState.members).length >= prevState.maxPlayer || prevState.started) {
+      if ((prevState.maxPlayer > 0 && Object.values(prevState.members).length >= prevState.maxPlayer) || prevState.started) {
         prevState.spectators[peerId] = true
       }
       return { ...prevState, members: { ...prevState.members, [peerId]: '' } }
@@ -60,7 +60,10 @@ export const gameReducer: NetworkReducer<GameState, GameAction> = (prevState, ac
         return { ...prevState, ready: { ...prevState.ready, [peerId]: true } }
       }
     case GameActionTypes.START: {
-      const who = Object.keys(prevState.members).filter(id => id !== networkName).filter((id) => id !== undefined && !(prevState.ready[id] ?? false))
+      const who = Object.keys(prevState.members)
+        .filter(id => id !== networkName)
+        .filter(id => !prevState.spectators[id])
+        .filter((id) => id !== undefined && !(prevState.ready[id] ?? false))
       if (who.length === 0) {
         return withShuffleId({ ...prevState, started: true }, action)
       } else {
@@ -69,5 +72,11 @@ export const gameReducer: NetworkReducer<GameState, GameAction> = (prevState, ac
     }
     default:
       return prevState
+  }
+}
+
+export const withGenericGameReducer = (reducer: NetworkReducer<GenericGameState, GenericGameAction>): NetworkReducer<GenericGameState, GenericGameAction> => {
+  return (prevState, action) => {
+    return reducer(generalGameReducer(prevState, action), action)
   }
 }

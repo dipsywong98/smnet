@@ -1,8 +1,8 @@
 import React, { FunctionComponent, useState } from 'react'
-import { useGame } from './lib/network/useGame'
+import { useGameNetwork } from 'gamenet'
 
 export const Room: FunctionComponent = () => {
-  const { room, state, leave, isAdmin, myId, kick, ready, start } = useGame()
+  const { room, state, leave, isAdmin, myId, kick, ready, start } = useGameNetwork()
   const [error, setError] = useState('')
   const handleStartClick = async (): Promise<void> => {
     await start().catch((e: Error) => setError(e.message))

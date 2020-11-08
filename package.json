@@ -4,7 +4,8 @@
   "workspaces": {
     "packages": [
       "example",
-      "smnet"
+      "smnet",
+      "gamenet"
     ],
     "nohoist": [
       "**/babel**",
@@ -16,7 +17,8 @@
     "lerna": "^3.22.1"
   },
   "scripts": {
-    "watch": "yarn workspace smnet watch",
-    "start": "yarn workspace example start"
+    "watch:smnet": "yarn workspace smnet watch",
+    "watch:gamenet": "yarn workspace gamenet watch",
+    "start:example": "yarn workspace example start"
   }
 }

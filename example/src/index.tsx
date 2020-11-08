@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import './index.css'
 import reportWebVitals from './reportWebVitals'
-import { GameApp } from './demo-game/GameApp'
+import { GameApp } from './demo-gamenet/GameApp'
 
 ReactDOM.render(
   <GameApp/>,

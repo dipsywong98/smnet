@@ -1,6 +1,6 @@
 import { NetworkState } from 'smnet'
 
-export class GameState implements NetworkState {
+export class GenericGameState implements NetworkState {
   [key: string]: unknown | undefined
   minPlayer = 1
   maxPlayer = 4

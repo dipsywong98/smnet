@@ -1,9 +1,9 @@
 import React, { FunctionComponent, useState } from 'react'
-import { useGame } from './lib/network/useGame'
 import { v4 } from 'uuid'
+import { useGameNetwork } from 'gamenet'
 
 export const Home: FunctionComponent = () => {
-  const { connect } = useGame()
+  const { connect } = useGameNetwork()
   const [name, setName] = useState(v4().substring(0, 4))
   const [room, setRoom] = useState('my-room')
   const [error, setError] = useState('')

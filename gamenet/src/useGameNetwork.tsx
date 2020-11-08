@@ -1,21 +1,22 @@
-import { logger, useNetwork } from 'smnet'
-import { gameReducer } from './GameReducer'
-import { GameState } from './GameState'
-import { GameActionTypes } from './GameAction'
-import React, { createContext, FunctionComponent, useContext, useEffect, useState } from 'react'
+import { logger, NetworkReducer, useNetwork } from 'smnet'
+import { withGenericGameReducer } from './withGenericGameReducer'
+import { GenericGameState } from './GenericGameState'
+import { GameActionTypes, GenericGameAction } from './GenericGameAction'
+import React, { createContext, FunctionComponent, ReactNode, useContext, useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 
 interface GameContextInterface {
   connect: (name: string, room: string) => Promise<void>
   leave: () => Promise<void>
   gameAppState: GameAppState
-  state: GameState
+  state: GenericGameState
   room?: string
   isAdmin: boolean
   myId?: string
   kick: (id: string) => Promise<void>
   ready: () => Promise<void>
   start: () => Promise<void>
+  dispatch: (action: GenericGameAction) => Promise<void>
 }
 
 export enum GameAppState {
@@ -24,20 +25,17 @@ export enum GameAppState {
   GAME
 }
 
-const GameContext = createContext<GameContextInterface>({
-  connect: async () => await Promise.reject(new Error('not implemented')),
-  leave: async () => await Promise.reject(new Error('not implemented')),
-  kick: async () => await Promise.reject(new Error('not implemented')),
-  ready: async () => await Promise.reject(new Error('not implemented')),
-  start: async () => await Promise.reject(new Error('not implemented')),
-  gameAppState: GameAppState.HOME,
-  state: new GameState(),
-  isAdmin: false
-})
+const GameContext = createContext<GameContextInterface | null>(null)
 
-export const GameProvider: FunctionComponent = ({ children }) => {
+export interface GameNetworkProps {
+  children: ReactNode
+  reducer: NetworkReducer<GenericGameState, GenericGameAction>
+  initialState: GenericGameState
+}
+
+export const GameNetworkProvider: FunctionComponent<GameNetworkProps> = ({ children, reducer, initialState }) => {
   const [gameAppState, setGameAppState] = useState(GameAppState.HOME)
-  const network = useNetwork(gameReducer, new GameState())
+  const network = useNetwork(withGenericGameReducer(reducer), initialState)
   const rename = async (name: string): Promise<void> => {
     await network.dispatch({
       type: GameActionTypes.RENAME,
@@ -71,11 +69,6 @@ export const GameProvider: FunctionComponent = ({ children }) => {
     logger.info('leaving')
     await network.leave()
   }
-  // useEffect(() => {
-  //   if (network.networkName === undefined) {
-  //     setGameAppState(GameAppState.HOME)
-  //   }
-  // }, [network.networkName])
   useEffect(() => {
     if (network.state.started && network.networkName !== undefined) {
       setGameAppState(GameAppState.GAME)
@@ -96,24 +89,23 @@ export const GameProvider: FunctionComponent = ({ children }) => {
       myId: network.myId,
       kick: network.kick,
       ready,
-      start
+      start,
+      dispatch: network.dispatch
     }}>
     {children}
   </GameContext.Provider>
 }
 
-GameProvider.propTypes = {
-  children: PropTypes.node
+GameNetworkProvider.propTypes = {
+  children: PropTypes.node,
+  reducer: PropTypes.func.isRequired,
+  initialState: PropTypes.instanceOf(GenericGameState).isRequired
 }
 
-export const withGame = (Component: FunctionComponent): FunctionComponent => {
-  const WithGame: FunctionComponent = (props) => (
-    <GameProvider>
-      <Component {...props} />
-    </GameProvider>
-  )
-  WithGame.displayName = 'WithGame'
-  return WithGame
+export const useGameNetwork = (): GameContextInterface => {
+  const ret = useContext(GameContext)
+  if (ret === null) {
+    throw new Error('Please wrap the component with GameNetworkProvider before using useGameNetwork')
+  }
+  return ret
 }
-
-export const useGame = (): GameContextInterface => useContext(GameContext)

@@ -1,7 +1,8 @@
 {
   "packages": [
     "example",
-    "smnet"
+    "smnet",
+    "gamenet"
   ],
   "version": "0.0.3"
 }
