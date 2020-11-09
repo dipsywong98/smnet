@@ -1,6 +1,7 @@
 import { NetworkReducer } from 'smnet'
 import { GenericGameState } from './GenericGameState'
 import { GameActionTypes, GenericGameAction } from './GenericGameAction'
+import { v4 } from 'uuid'
 
 type StateMapper = (prevState: GenericGameState) => GenericGameState
 
@@ -17,6 +18,9 @@ const shuffle = <T> (a: T[]): T[] => {
 }
 
 const withMemberJoin: (peerId: string) => StateMapper = peerId => (prevState) => {
+  if (peerId in prevState.members) {
+    throw new Error(`peerId ${peerId} already joined this room`)
+  }
   if ((prevState.maxPlayer > 0 && Object.values(prevState.members).length >= prevState.maxPlayer) || prevState.started) {
     prevState.spectators[peerId] = true
   }
@@ -55,8 +59,10 @@ const withUpdateLocalAndAi: (oldMasterId: string, newMasterId: string | undefine
 }
 
 const withRemovePlayer: (peerId: string) => StateMapper = (peerId) => prevState => {
-  const { [peerId]: _, ...members } = prevState.members
-  return { ...prevState, members }
+  const { [peerId]: _1, ...members } = prevState.members
+  const { [peerId]: _2, ...localPlayers } = prevState.localPlayers
+  const { [peerId]: _3, ...aiPlayers } = prevState.aiPlayers
+  return { ...prevState, members, localPlayers, aiPlayers }
 }
 
 const withToggleReady: (peerId: string) => StateMapper = (peerId) => prevState => {
@@ -69,12 +75,12 @@ const withToggleReady: (peerId: string) => StateMapper = (peerId) => prevState =
 }
 
 const withShuffleId: StateMapper = (prevState) => {
-  const membersNames = shuffle(Object.entries(prevState.members).filter(([peerId]) => !prevState.spectators[peerId]).map(a => a[1]))
+  const players = shuffle(Object.entries(prevState.members).filter(([peerId]) => !prevState.spectators[peerId]).map(a => a[1]))
   const nameDict: Record<string, number> = {}
-  membersNames.forEach((name, id) => {
+  players.forEach((name, id) => {
     nameDict[name] = id
   })
-  return { ...prevState, nameDict }
+  return { ...prevState, nameDict, players }
 }
 
 const withGameStart: (networkName: string) => StateMapper = (networkName) => prevState => {
@@ -92,7 +98,7 @@ const withGameStart: (networkName: string) => StateMapper = (networkName) => pre
 }
 
 const withAddAiPlayer: (name: string, masterPeerId: string) => StateMapper = (name, masterPeerId) => prevState => {
-  const fakePeerId = `ai-${name}`
+  const fakePeerId = `ai-${name}-${v4()}`
   const nextState = compose(
     withRename(fakePeerId, name),
     withMemberJoin(fakePeerId)
@@ -101,7 +107,7 @@ const withAddAiPlayer: (name: string, masterPeerId: string) => StateMapper = (na
 }
 
 const withAddLocalPlayer: (name: string, masterPeerId: string) => StateMapper = (name, masterPeerId) => prevState => {
-  const fakePeerId = `local-${name}`
+  const fakePeerId = `local-${name}-${v4()}`
   const nextState = compose(
     withRename(fakePeerId, name),
     withMemberJoin(fakePeerId)
@@ -142,6 +148,8 @@ export const generalGameReducer: NetworkReducer<GenericGameState, GenericGameAct
       return withAddAiPlayer(action.payload, peerId)(prevState)
     case GameActionTypes.ADD_LOCAL:
       return withAddLocalPlayer(action.payload, peerId)(prevState)
+    case GameActionTypes.REMOVE_LOCAL_AI:
+      return withRemovePlayer(action.payload)(prevState)
     default:
       return prevState
   }

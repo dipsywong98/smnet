@@ -1,26 +1,58 @@
 import React, { FunctionComponent, useState } from 'react'
-import { useGameNetwork } from 'gamenet'
+import { PlayerType, useGameNetwork } from 'gamenet'
 
 export const Room: FunctionComponent = () => {
-  const { room, state, leave, isAdmin, myId, kick, ready, start } = useGameNetwork()
+  const { room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType } = useGameNetwork()
   const [error, setError] = useState('')
+  const [name, setName] = useState('')
   const handleStartClick = async (): Promise<void> => {
     await start().catch((e: Error) => setError(e.message))
   }
   const handleReadyClick = async (): Promise<void> => {
     await ready().catch((e: Error) => setError(e.message))
   }
+  const handleAddLocalClick = async (): Promise<void> => {
+    setName('')
+    await addLocal(name).catch((e: Error) => setError(e.message))
+  }
+  const handleAddAiClick = async (): Promise<void> => {
+    setName('')
+    await addAi(name).catch((e: Error) => setError(e.message))
+  }
+  const displayPlayerType = {
+    [PlayerType.NORMAL]: '',
+    [PlayerType.LOCAL]: '(local)',
+    [PlayerType.AI]: '(ai)'
+  }
   return (
     <div>
       <div>Room: {room}</div>
       <div>
         {Object.entries(state.members).map(([id, name]) => (
-          <div key={name}>{name} {(id !== myId && isAdmin) &&
-          <button onClick={async () => await kick(id)}>kick</button>}{(state.ready[id] ?? false) && '(ready)'}</div>)
+          <div key={name}>
+            {name} {displayPlayerType[playerType(name)]}
+            {(id !== myId && isAdmin) &&
+            <button onClick={async () => await kick(id)}>kick</button>
+            }
+            {(state.ready[id] ?? false) && '(ready)'}
+          </div>)
         )}
       </div>
-      <button onClick={leave}>leave</button>
-      {isAdmin ? <button onClick={handleStartClick}>start</button> : <button onClick={handleReadyClick}>ready</button>}
+      <div>
+        <button onClick={leave}>leave</button>
+        {isAdmin
+          ? <button onClick={handleStartClick}>start</button>
+          : <button onClick={handleReadyClick}>ready</button>}
+      </div>
+      <div>
+        <input
+          placeholder='new local/ai player name'
+          value={name}
+          onChange={({ target: { value } }) => setName(value)}
+        />
+        <button onClick={handleAddLocalClick}>Add local</button>
+        <button onClick={handleAddAiClick}>Add AI</button>
+      </div>
       {error !== '' && <div>{error}</div>}
     </div>
   )

@@ -1,6 +1,6 @@
 import { logger, NetworkReducer, useNetwork } from 'smnet'
 import { withGenericGameReducer } from './withGenericGameReducer'
-import { GenericGameState } from './GenericGameState'
+import { GenericGameState, PlayerType } from './GenericGameState'
 import { GameActionTypes, GenericGameAction } from './GenericGameAction'
 import React, { createContext, FunctionComponent, ReactNode, useContext, useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
@@ -19,6 +19,7 @@ interface GameContextInterface {
   addLocal: (name: string) => Promise<void>
   addAi: (name: string) => Promise<void>
   dispatch: (action: GenericGameAction) => Promise<void>
+  playerType: (nameOrId: string | number) => PlayerType
 }
 
 export enum GameAppState {
@@ -38,6 +39,21 @@ export interface GameNetworkProps {
 export const GameNetworkProvider: FunctionComponent<GameNetworkProps> = ({ children, reducer, initialState }) => {
   const [gameAppState, setGameAppState] = useState(GameAppState.HOME)
   const network = useNetwork(withGenericGameReducer(reducer), initialState)
+
+  const playerType = (nameOrId: string | number): PlayerType => {
+    const name: string = typeof nameOrId === 'string' ? nameOrId : network.state.players[nameOrId]
+    const peerId: string | undefined = Object.entries(network.state.members).find(([peerId, n]) => name === n)?.[0]
+    if (peerId === undefined) {
+      return PlayerType.NORMAL
+    }
+    if (peerId in network.state.aiPlayers) {
+      return PlayerType.AI
+    } else if (peerId in network.state.localPlayers) {
+      return PlayerType.LOCAL
+    } else {
+      return PlayerType.NORMAL
+    }
+  }
   const rename = async (name: string): Promise<void> => {
     await network.dispatch({
       type: GameActionTypes.RENAME,
@@ -83,6 +99,17 @@ export const GameNetworkProvider: FunctionComponent<GameNetworkProps> = ({ child
     logger.info('leaving')
     await network.leave()
   }
+  const kick = async (peerId: string): Promise<void> => {
+    logger.info('leaving')
+    if (peerId in network.state.aiPlayers || peerId in network.state.localPlayers) {
+      await network.dispatch({
+        type: GameActionTypes.REMOVE_LOCAL_AI,
+        payload: peerId
+      })
+    } else {
+      await network.kick(peerId)
+    }
+  }
   useEffect(() => {
     if (network.state.started && network.networkName !== undefined) {
       setGameAppState(GameAppState.GAME)
@@ -101,12 +128,13 @@ export const GameNetworkProvider: FunctionComponent<GameNetworkProps> = ({ child
       leave,
       isAdmin: network.isAdmin,
       myId: network.myId,
-      kick: network.kick,
+      kick,
       ready,
       start,
       dispatch: network.dispatch,
       addLocal,
-      addAi
+      addAi,
+      playerType
     }}>
     {children}
   </GameContext.Provider>

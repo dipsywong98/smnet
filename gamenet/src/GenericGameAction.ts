@@ -21,6 +21,9 @@ export type GenericGameAction = ({
 } | {
   type: GameActionTypes.ADD_LOCAL
   payload: string
+} | {
+  type: GameActionTypes.REMOVE_LOCAL_AI
+  payload: string
 }) & NetworkAction
 
 export enum GameActionTypes {
@@ -32,4 +35,5 @@ export enum GameActionTypes {
   START,
   ADD_AI,
   ADD_LOCAL,
+  REMOVE_LOCAL_AI,
 }

@@ -1,5 +1,11 @@
 import { NetworkState } from 'smnet'
 
+export enum PlayerType {
+  NORMAL,
+  LOCAL,
+  AI
+}
+
 export class GenericGameState implements NetworkState {
   [key: string]: unknown | undefined
 
@@ -15,17 +21,21 @@ export class GenericGameState implements NetworkState {
    */
   spectators: { [peerId: string]: true } = {}
   /**
-   * local players, key: local-<name>, value is the peerId that control this local player
+   * local players, key: display name, value is the peerId that control this local player
    */
-  localPlayers: { [fakePeerId: string]: string } = {}
+  localPlayers: { [name: string]: string } = {}
   /**
-   * ai players, key: ai-<name>, value is the peerId that control this ai player
+   * ai players, key: display name, value is the peerId that control this ai player
    */
-  aiPlayers: { [fakePeerId: string]: string } = {}
+  aiPlayers: { [name: string]: string } = {}
   /**
    * name to in game id map
    */
   nameDict: { [name: string]: number } = {}
+  /**
+   * in game id to name map
+   */
+  players: string[] = []
   /**
    * peerId in ready iff ready
    */
