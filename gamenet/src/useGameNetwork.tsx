@@ -16,6 +16,8 @@ interface GameContextInterface {
   kick: (id: string) => Promise<void>
   ready: () => Promise<void>
   start: () => Promise<void>
+  addLocal: (name: string) => Promise<void>
+  addAi: (name: string) => Promise<void>
   dispatch: (action: GenericGameAction) => Promise<void>
 }
 
@@ -50,6 +52,18 @@ export const GameNetworkProvider: FunctionComponent<GameNetworkProps> = ({ child
   const start = async (): Promise<void> => {
     await network.dispatch({
       type: GameActionTypes.START
+    })
+  }
+  const addLocal = async (name: string): Promise<void> => {
+    await network.dispatch({
+      type: GameActionTypes.ADD_LOCAL,
+      payload: name
+    })
+  }
+  const addAi = async (name: string): Promise<void> => {
+    await network.dispatch({
+      type: GameActionTypes.ADD_AI,
+      payload: name
     })
   }
   const connect = async (name: string, room: string): Promise<void> => {
@@ -90,7 +104,9 @@ export const GameNetworkProvider: FunctionComponent<GameNetworkProps> = ({ child
       kick: network.kick,
       ready,
       start,
-      dispatch: network.dispatch
+      dispatch: network.dispatch,
+      addLocal,
+      addAi
     }}>
     {children}
   </GameContext.Provider>

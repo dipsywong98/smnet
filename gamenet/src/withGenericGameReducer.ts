@@ -2,6 +2,12 @@ import { NetworkReducer } from 'smnet'
 import { GenericGameState } from './GenericGameState'
 import { GameActionTypes, GenericGameAction } from './GenericGameAction'
 
+type StateMapper = (prevState: GenericGameState) => GenericGameState
+
+export const compose: <T>(...func: Array<(t: T) => T>) => ((t: T) => T) = (...funcs) => t => {
+  return funcs.reverse().reduce((p, func) => func(p), t)
+}
+
 const shuffle = <T> (a: T[]): T[] => {
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -10,13 +16,97 @@ const shuffle = <T> (a: T[]): T[] => {
   return a
 }
 
-const withShuffleId: NetworkReducer<GenericGameState, GenericGameAction> = (prevState) => {
-  const membersNames = shuffle(Object.values(prevState.members))
+const withMemberJoin: (peerId: string) => StateMapper = peerId => (prevState) => {
+  if ((prevState.maxPlayer > 0 && Object.values(prevState.members).length >= prevState.maxPlayer) || prevState.started) {
+    prevState.spectators[peerId] = true
+  }
+  return { ...prevState, members: { ...prevState.members, [peerId]: '' } }
+}
+
+const withRename: (peerId: string, newName: string) => StateMapper = (peerId, newName) => (prevState) => {
+  if (Object.values(prevState.members).includes(newName)) {
+    throw new Error(`there is already someone named ${newName}`)
+  }
+  if (prevState.started && Object.keys(prevState.nameDict).includes(newName)) {
+    const { [peerId]: _, ...spectators } = prevState.spectators
+    prevState.spectators = spectators
+  }
+  return { ...prevState, members: { ...prevState.members, [peerId]: newName } }
+}
+
+const withUpdateLocalAndAi: (oldMasterId: string, newMasterId: string | undefined) => StateMapper = (oldMasterPeerId, newMasterId) => prevState => {
+  const localPlayers: Record<string, string> = {}
+  const aiPlayers: Record<string, string> = {}
+  Object.entries(prevState.localPlayers).forEach(([fakePeerId, masterId]) => {
+    if (masterId !== oldMasterPeerId) {
+      localPlayers[fakePeerId] = masterId
+    } else if (newMasterId !== undefined) {
+      localPlayers[fakePeerId] = newMasterId
+    }
+  })
+  Object.entries(prevState.aiPlayers).forEach(([fakePeerId, masterId]) => {
+    if (masterId !== oldMasterPeerId) {
+      aiPlayers[fakePeerId] = masterId
+    } else if (newMasterId !== undefined) {
+      aiPlayers[fakePeerId] = newMasterId
+    }
+  })
+  return { ...prevState, localPlayers, aiPlayers }
+}
+
+const withRemovePlayer: (peerId: string) => StateMapper = (peerId) => prevState => {
+  const { [peerId]: _, ...members } = prevState.members
+  return { ...prevState, members }
+}
+
+const withToggleReady: (peerId: string) => StateMapper = (peerId) => prevState => {
+  if (prevState.ready[peerId]) {
+    const { [peerId]: _, ...ready } = prevState.ready
+    return { ...prevState, ready }
+  } else {
+    return { ...prevState, ready: { ...prevState.ready, [peerId]: true } }
+  }
+}
+
+const withShuffleId: StateMapper = (prevState) => {
+  const membersNames = shuffle(Object.entries(prevState.members).filter(([peerId]) => !prevState.spectators[peerId]).map(a => a[1]))
   const nameDict: Record<string, number> = {}
   membersNames.forEach((name, id) => {
     nameDict[name] = id
   })
   return { ...prevState, nameDict }
+}
+
+const withGameStart: (networkName: string) => StateMapper = (networkName) => prevState => {
+  const who = Object.keys(prevState.members)
+    .filter(id => id !== networkName)
+    .filter(id => !prevState.spectators[id])
+    .filter(id => prevState.localPlayers[id] === undefined)
+    .filter(id => prevState.aiPlayers[id] === undefined)
+    .filter((id) => id !== undefined && !(prevState.ready[id] ?? false))
+  if (who.length === 0) {
+    return withShuffleId({ ...prevState, started: true })
+  } else {
+    throw new Error(`${who.map(id => prevState.members[id]).join(',')} not ready yet`)
+  }
+}
+
+const withAddAiPlayer: (name: string, masterPeerId: string) => StateMapper = (name, masterPeerId) => prevState => {
+  const fakePeerId = `ai-${name}`
+  const nextState = compose(
+    withRename(fakePeerId, name),
+    withMemberJoin(fakePeerId)
+  )(prevState)
+  return { ...nextState, aiPlayers: { ...nextState.aiPlayers, [fakePeerId]: masterPeerId } }
+}
+
+const withAddLocalPlayer: (name: string, masterPeerId: string) => StateMapper = (name, masterPeerId) => prevState => {
+  const fakePeerId = `local-${name}`
+  const nextState = compose(
+    withRename(fakePeerId, name),
+    withMemberJoin(fakePeerId)
+  )(prevState)
+  return { ...nextState, localPlayers: { ...nextState.localPlayers, [fakePeerId]: masterPeerId } }
 }
 
 export const generalGameReducer: NetworkReducer<GenericGameState, GenericGameAction> = (prevState, action) => {
@@ -30,46 +120,28 @@ export const generalGameReducer: NetworkReducer<GenericGameState, GenericGameAct
   }
   switch (action.type) {
     case GameActionTypes.MEMBER_JOIN:
-      if ((prevState.maxPlayer > 0 && Object.values(prevState.members).length >= prevState.maxPlayer) || prevState.started) {
-        prevState.spectators[peerId] = true
-      }
-      return { ...prevState, members: { ...prevState.members, [peerId]: '' } }
+      return withMemberJoin(peerId)(prevState)
     case GameActionTypes.RENAME:
-      if (Object.values(prevState.members).includes(action.payload)) {
-        throw new Error(`there is already someone named ${action.payload}`)
-      }
-      if (prevState.started && Object.keys(prevState.nameDict).includes(action.payload)) {
-        const { [peerId]: _, ...spectators } = prevState.spectators
-        prevState.spectators = spectators
-      }
-      return { ...prevState, members: { ...prevState.members, [peerId]: action.payload } }
-    case GameActionTypes.MEMBER_LEFT: {
-      const { [action.payload]: _, ...members } = prevState.members
-      return { ...prevState, members }
-    }
-    case GameActionTypes.HOST_LEFT: {
-      const { [action.payload]: _, ...members } = prevState.members
-      members[networkName] = prevState.members[action.payload]
-      return { ...prevState, members }
-    }
+      return withRename(peerId, action.payload)(prevState)
+    case GameActionTypes.MEMBER_LEFT:
+      return compose(
+        withUpdateLocalAndAi(action.payload, networkName),
+        withRemovePlayer(action.payload)
+      )(prevState)
+    case GameActionTypes.HOST_LEFT:
+      return compose(
+        withUpdateLocalAndAi(action.payload, networkName),
+        withRename(networkName, prevState.members[action.payload]),
+        withRemovePlayer(action.payload)
+      )(prevState)
     case GameActionTypes.READY:
-      if (prevState.ready[peerId]) {
-        const { [peerId]: _, ...ready } = prevState.ready
-        return { ...prevState, ready }
-      } else {
-        return { ...prevState, ready: { ...prevState.ready, [peerId]: true } }
-      }
-    case GameActionTypes.START: {
-      const who = Object.keys(prevState.members)
-        .filter(id => id !== networkName)
-        .filter(id => !prevState.spectators[id])
-        .filter((id) => id !== undefined && !(prevState.ready[id] ?? false))
-      if (who.length === 0) {
-        return withShuffleId({ ...prevState, started: true }, action)
-      } else {
-        throw new Error(`${who.map(id => prevState.members[id]).join(',')} not ready yet`)
-      }
-    }
+      return withToggleReady(peerId)(prevState)
+    case GameActionTypes.START:
+      return withGameStart(networkName)(prevState)
+    case GameActionTypes.ADD_AI:
+      return withAddAiPlayer(action.payload, peerId)(prevState)
+    case GameActionTypes.ADD_LOCAL:
+      return withAddLocalPlayer(action.payload, peerId)(prevState)
     default:
       return prevState
   }

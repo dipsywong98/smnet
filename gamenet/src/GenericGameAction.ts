@@ -15,6 +15,12 @@ export type GenericGameAction = ({
   type: GameActionTypes.START
 } | {
   type: GameActionTypes.MEMBER_JOIN
+} | {
+  type: GameActionTypes.ADD_AI
+  payload: string
+} | {
+  type: GameActionTypes.ADD_LOCAL
+  payload: string
 }) & NetworkAction
 
 export enum GameActionTypes {
@@ -24,4 +30,6 @@ export enum GameActionTypes {
   RENAME = 0,
   READY,
   START,
+  ADD_AI,
+  ADD_LOCAL,
 }
