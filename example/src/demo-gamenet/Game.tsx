@@ -1,8 +1,8 @@
 import React, { FunctionComponent } from 'react'
-import { useGameNetwork } from 'gamenet'
+import { usePoker99 } from './withPoker99Network'
 
 export const Game: FunctionComponent = () => {
-  const { state } = useGameNetwork()
+  const { state } = usePoker99()
   return (<div>
     <pre>
       {JSON.stringify(state, null, 2)}

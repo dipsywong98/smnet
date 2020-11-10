@@ -9,7 +9,7 @@ export const compose: <T>(...func: Array<(t: T) => T>) => ((t: T) => T) = (...fu
   return funcs.reverse().reduce((p, func) => func(p), t)
 }
 
-const shuffle = <T> (a: T[]): T[] => {
+export const shuffle = <T> (a: T[]): T[] => {
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]]
@@ -76,6 +76,12 @@ const withToggleReady: (peerId: string) => StateMapper = (peerId) => prevState =
 
 const withShuffleId: StateMapper = (prevState) => {
   const players = shuffle(Object.entries(prevState.members).filter(([peerId]) => !prevState.spectators[peerId]).map(a => a[1]))
+  if (players.length > prevState.maxPlayer) {
+    throw new Error(`Too much players, max: ${prevState.maxPlayer}, got: ${players.length}`)
+  }
+  if (players.length < prevState.minPlayer) {
+    throw new Error(`Not enough players, min: ${prevState.minPlayer}, got: ${players.length}`)
+  }
   const nameDict: Record<string, number> = {}
   players.forEach((name, id) => {
     nameDict[name] = id
@@ -155,8 +161,8 @@ export const generalGameReducer: NetworkReducer<GenericGameState, GenericGameAct
   }
 }
 
-export const withGenericGameReducer = (reducer: NetworkReducer<GenericGameState, GenericGameAction>): NetworkReducer<GenericGameState, GenericGameAction> => {
+export const withGenericGameReducer = <State extends GenericGameState, Action extends GenericGameAction> (reducer: NetworkReducer<State, Action>): NetworkReducer<GenericGameState, GenericGameAction> => {
   return (prevState, action) => {
-    return reducer(generalGameReducer(prevState, action), action)
+    return reducer(generalGameReducer(prevState, action) as State, action as Action)
   }
 }

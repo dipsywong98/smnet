@@ -1,8 +1,9 @@
 import React, { FunctionComponent, useState } from 'react'
-import { PlayerType, useGameNetwork } from 'gamenet'
+import { PlayerType } from 'gamenet'
+import { usePoker99 } from './withPoker99Network'
 
 export const Room: FunctionComponent = () => {
-  const { room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType } = useGameNetwork()
+  const { room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType } = usePoker99()
   const [error, setError] = useState('')
   const [name, setName] = useState('')
   const handleStartClick = async (): Promise<void> => {

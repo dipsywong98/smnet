@@ -2,14 +2,13 @@ import { logger, NetworkReducer, useNetwork } from 'smnet'
 import { withGenericGameReducer } from './withGenericGameReducer'
 import { GenericGameState, PlayerType } from './GenericGameState'
 import { GameActionTypes, GenericGameAction } from './GenericGameAction'
-import React, { createContext, FunctionComponent, ReactNode, useContext, useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
+import { ReactNode, useEffect, useState } from 'react'
 
-interface GameContextInterface {
+export interface GameContextInterface<State extends GenericGameState, Action extends GenericGameAction> {
   connect: (name: string, room: string) => Promise<void>
   leave: () => Promise<void>
   gameAppState: GameAppState
-  state: GenericGameState
+  state: State
   room?: string
   isAdmin: boolean
   myId?: string
@@ -18,7 +17,7 @@ interface GameContextInterface {
   start: () => Promise<void>
   addLocal: (name: string) => Promise<void>
   addAi: (name: string) => Promise<void>
-  dispatch: (action: GenericGameAction) => Promise<void>
+  dispatch: (action: Action) => Promise<void>
   playerType: (nameOrId: string | number) => PlayerType
 }
 
@@ -28,21 +27,19 @@ export enum GameAppState {
   GAME
 }
 
-const GameContext = createContext<GameContextInterface | null>(null)
-
-export interface GameNetworkProps {
+export interface GameNetworkProps<State extends GenericGameState, Action extends GenericGameAction> {
   children: ReactNode
-  reducer: NetworkReducer<GenericGameState, GenericGameAction>
-  initialState: GenericGameState
+  reducer: NetworkReducer<State, Action>
+  initialState: State
 }
 
-export const GameNetworkProvider: FunctionComponent<GameNetworkProps> = ({ children, reducer, initialState }) => {
+export const useGameNetwork = <State extends GenericGameState, Action extends GenericGameAction>(reducer: NetworkReducer<State, Action>, initialState: State): GameContextInterface<State, Action> => {
   const [gameAppState, setGameAppState] = useState(GameAppState.HOME)
   const network = useNetwork(withGenericGameReducer(reducer), initialState)
 
   const playerType = (nameOrId: string | number): PlayerType => {
     const name: string = typeof nameOrId === 'string' ? nameOrId : network.state.players[nameOrId]
-    const peerId: string | undefined = Object.entries(network.state.members).find(([peerId, n]) => name === n)?.[0]
+    const peerId: string | undefined = Object.entries(network.state.members).find(([_peerId, n]) => name === n)?.[0]
     if (peerId === undefined) {
       return PlayerType.NORMAL
     }
@@ -119,37 +116,20 @@ export const GameNetworkProvider: FunctionComponent<GameNetworkProps> = ({ child
       setGameAppState(GameAppState.HOME)
     }
   }, [network.state, network.networkName])
-  return <GameContext.Provider
-    value={{
-      connect,
-      gameAppState,
-      state: network.state,
-      room: network.networkName,
-      leave,
-      isAdmin: network.isAdmin,
-      myId: network.myId,
-      kick,
-      ready,
-      start,
-      dispatch: network.dispatch,
-      addLocal,
-      addAi,
-      playerType
-    }}>
-    {children}
-  </GameContext.Provider>
-}
-
-GameNetworkProvider.propTypes = {
-  children: PropTypes.node,
-  reducer: PropTypes.func.isRequired,
-  initialState: PropTypes.instanceOf(GenericGameState).isRequired
-}
-
-export const useGameNetwork = (): GameContextInterface => {
-  const ret = useContext(GameContext)
-  if (ret === null) {
-    throw new Error('Please wrap the component with GameNetworkProvider before using useGameNetwork')
+  return {
+    connect,
+    gameAppState,
+    state: network.state as State,
+    room: network.networkName,
+    leave,
+    isAdmin: network.isAdmin,
+    myId: network.myId,
+    kick,
+    ready,
+    start,
+    dispatch: network.dispatch,
+    addLocal,
+    addAi,
+    playerType
   }
-  return ret
 }
