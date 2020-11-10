@@ -4,7 +4,7 @@ import { GenericGameState, PlayerType } from './GenericGameState'
 import { GameActionTypes, GenericGameAction } from './GenericGameAction'
 import { ReactNode, useEffect, useState } from 'react'
 
-export interface GameContextInterface<State extends GenericGameState, Action extends GenericGameAction> {
+export interface GameContextInterface<State, Action> {
   connect: (name: string, room: string) => Promise<void>
   leave: () => Promise<void>
   gameAppState: GameAppState

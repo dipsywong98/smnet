@@ -90,6 +90,9 @@ const withShuffleId: StateMapper = (prevState) => {
 }
 
 const withGameStart: (networkName: string) => StateMapper = (networkName) => prevState => {
+  if (prevState.started) {
+    throw new Error('Started already')
+  }
   const who = Object.keys(prevState.members)
     .filter(id => id !== networkName)
     .filter(id => !prevState.spectators[id])
