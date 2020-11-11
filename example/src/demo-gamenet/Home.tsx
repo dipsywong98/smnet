@@ -9,7 +9,7 @@ export const Home: FunctionComponent = () => {
   const [error, setError] = useState('')
   return (
     <div>
-      <h1>Demo Game</h1>
+      <h1>Demo Game - Poker 99</h1>
       {error !== '' && <div>{error}</div>}
       <div>
         <label>your name: <input value={name} onChange={({ target: { value } }) => setName(value)}/></label>

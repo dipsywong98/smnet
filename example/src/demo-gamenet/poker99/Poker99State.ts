@@ -11,4 +11,5 @@ export class Poker99State extends GenericGameState {
   drawDeck: Deck = []
   trashDeck: Deck = []
   playerDeck: Deck[] = []
+  winner?: number
 }

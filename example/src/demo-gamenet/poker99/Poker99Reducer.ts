@@ -64,6 +64,12 @@ const withPlayCard: (playerId: number, payload: PlayCardPayload) => StateMapper 
     amount = prevState.points - 1
   }
   prevState.points += sign * amount
+  if (prevState.points > 99) {
+    throw new Error('playing this card will exceed 99')
+  }
+  prevState.playerDeck[playerId] = prevState.playerDeck[playerId].filter(({ suit, number }) => !(suit === card.suit && number === card.number))
+  prevState.trashDeck.push(card)
+  prevState = withDrawCard(playerId)(prevState)
   if (card.number === 5) {
     if (payload.target === undefined) {
       throw new Error('Card with number 5 require target in payload')
@@ -71,28 +77,33 @@ const withPlayCard: (playerId: number, payload: PlayCardPayload) => StateMapper 
     if (payload.target === playerId) {
       throw new Error('Target cannot be myself')
     }
+    if (prevState.dead[payload.target]) {
+      throw new Error('cannot target on dead body')
+    }
     prevState.turn = payload.target
+    return withBeforeNextTurn(prevState)
   } else if (card.number === 4) {
     prevState.direction *= -1
   }
-  prevState.playerDeck[playerId] = prevState.playerDeck[playerId].filter(({ suit, number }) => suit === card.suit && number === card.number)
-  prevState.trashDeck.push(card)
-  return withNextTurn(withDrawCard(playerId)(prevState))
+  return withBeforeNextTurn(withIncrementTurn(prevState))
 }
 
-const withNextTurn: StateMapper = prevState => {
+const withIncrementTurn: StateMapper = prevState => {
   const nextPlayerId = (prevState.turn + prevState.maxPlayer + prevState.direction) % prevState.maxPlayer
-  if (minPossible(prevState.points, prevState.playerDeck[nextPlayerId])[0] > 99) {
-    prevState.dead[nextPlayerId] = true
+  return { ...prevState, turn: nextPlayerId }
+}
+
+const withBeforeNextTurn: StateMapper = prevState => {
+  if (minPossible(prevState.points, prevState.playerDeck[prevState.turn])[0] > 99) {
+    prevState.dead[prevState.turn] = true
   }
   if (Object.keys(prevState.dead).length === prevState.players.length - 1 && prevState.started) {
-    prevState.started = false
     prevState.winner = [0, 1, 2, 3].filter(k => !prevState.dead[k])[0]
   }
-  if (prevState.dead[nextPlayerId]) {
-    return withNextTurn({ ...prevState, turn: nextPlayerId })
+  if (prevState.dead[prevState.turn]) {
+    return withBeforeNextTurn(withIncrementTurn({ ...prevState, turn: prevState.turn }))
   } else {
-    return { ...prevState, turn: nextPlayerId }
+    return { ...prevState, turn: prevState.turn }
   }
 }
 
@@ -116,6 +127,8 @@ export const Poker99Reducer: NetworkReducer<Poker99State, Poker99Action> = (prev
       return withPlayCard(playerId(), action.payload)(cloneDeep(prevState))
     case Poker99ActionType.LOCAL_MOVE:
       return Poker99Reducer(prevState, action.payload)
+    case Poker99ActionType.END:
+      return { ...prevState, started: false }
   }
   return prevState
 }

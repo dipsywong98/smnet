@@ -5,6 +5,7 @@ import { NetworkAction } from 'smnet'
 export enum Poker99ActionType {
   PLAY_CARD,
   LOCAL_MOVE,
+  END,
 }
 
 export interface PlayCardPayload {
@@ -19,6 +20,8 @@ export type Poker99Action = ({
 } | {
   type: Poker99ActionType.LOCAL_MOVE
   payload: Poker99Action
+} | {
+  type: Poker99ActionType.END
 } | {
   type: GameActionTypes
   payload: never
