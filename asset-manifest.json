@@ -1,0 +1,24 @@
+{
+  "files": {
+    "main.css": "/smnet/static/css/main.5ecd60fb.chunk.css",
+    "main.js": "/smnet/static/js/main.dc7523fe.chunk.js",
+    "main.js.map": "/smnet/static/js/main.dc7523fe.chunk.js.map",
+    "runtime-main.js": "/smnet/static/js/runtime-main.bdba1306.js",
+    "runtime-main.js.map": "/smnet/static/js/runtime-main.bdba1306.js.map",
+    "static/js/2.62023a3b.chunk.js": "/smnet/static/js/2.62023a3b.chunk.js",
+    "static/js/2.62023a3b.chunk.js.map": "/smnet/static/js/2.62023a3b.chunk.js.map",
+    "static/js/3.ff0fcd55.chunk.js": "/smnet/static/js/3.ff0fcd55.chunk.js",
+    "static/js/3.ff0fcd55.chunk.js.map": "/smnet/static/js/3.ff0fcd55.chunk.js.map",
+    "index.html": "/smnet/index.html",
+    "precache-manifest.aaa92b5a5de23bd5cc6f999ffa927aae.js": "/smnet/precache-manifest.aaa92b5a5de23bd5cc6f999ffa927aae.js",
+    "service-worker.js": "/smnet/service-worker.js",
+    "static/css/main.5ecd60fb.chunk.css.map": "/smnet/static/css/main.5ecd60fb.chunk.css.map",
+    "static/js/2.62023a3b.chunk.js.LICENSE.txt": "/smnet/static/js/2.62023a3b.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.bdba1306.js",
+    "static/js/2.62023a3b.chunk.js",
+    "static/css/main.5ecd60fb.chunk.css",
+    "static/js/main.dc7523fe.chunk.js"
+  ]
+}
