@@ -31,7 +31,18 @@ const withDrawCard: (playerId: number) => StateMapper = playerId => prevState =>
 }
 
 const withInitGame: StateMapper = (prevState: Poker99State) => {
-  prevState = { ...prevState, drawDeck: [], trashDeck: [], playerDeck: [], points: 0, direction: 1, turn: 0, dead: {} }
+  prevState = {
+    ...prevState,
+    drawDeck: [],
+    trashDeck: [],
+    playerDeck: [],
+    points: 0,
+    direction: 1,
+    turn: 0,
+    dead: {},
+    logs: ['game started'],
+    winner: undefined
+  }
   prevState.drawDeck = shuffle(getFullDeck())
   for (let id = 0; id < prevState.players.length; id++) {
     prevState.playerDeck[id] = []
@@ -44,8 +55,9 @@ const withInitGame: StateMapper = (prevState: Poker99State) => {
 
 const withPlayCard: (playerId: number, payload: PlayCardPayload) => StateMapper = (playerId, payload) => prevState => {
   const { card } = payload
+  const cardStr = `${Suit[card.suit]}${card.number}`
   if (prevState.playerDeck[playerId].find(({ suit, number }) => suit === card.suit && number === card.number) === undefined) {
-    throw new Error(`${prevState.players[playerId]} doesnt own card ${Suit[card.suit]}${card.number}`)
+    throw new Error(`${prevState.players[playerId]} doesnt own card ${cardStr}`)
   }
   if (prevState.turn !== playerId) {
     throw new Error('not your turn')
@@ -80,10 +92,14 @@ const withPlayCard: (playerId: number, payload: PlayCardPayload) => StateMapper 
     if (prevState.dead[payload.target]) {
       throw new Error('cannot target on dead body')
     }
+    prevState.logs.push(`${prevState.players[prevState.turn]} played ${cardStr}, targeted ${prevState.players[payload.target]}`)
     prevState.turn = payload.target
     return withBeforeNextTurn(prevState)
   } else if (card.number === 4) {
     prevState.direction *= -1
+    prevState.logs.push(`${prevState.players[prevState.turn]} played ${cardStr}, direction reversed`)
+  } else {
+    prevState.logs.push(`${prevState.players[prevState.turn]} played ${cardStr}, add ${sign * amount}, now ${prevState.points} points`)
   }
   return withBeforeNextTurn(withIncrementTurn(prevState))
 }
@@ -94,7 +110,10 @@ const withIncrementTurn: StateMapper = prevState => {
 }
 
 const withBeforeNextTurn: StateMapper = prevState => {
-  if (minPossible(prevState.points, prevState.playerDeck[prevState.turn])[0] > 99) {
+  if (!prevState.dead[prevState.turn] && minPossible(prevState.points, prevState.playerDeck[prevState.turn])[0] > 99) {
+    prevState.logs.push(`${prevState.players[prevState.turn]} die, his card: ${prevState.playerDeck[prevState.turn].map(card => (
+      `${Suit[card.suit]}${card.number}`)
+    ).join(',')}`)
     prevState.dead[prevState.turn] = true
   }
   if (Object.keys(prevState.dead).length === prevState.players.length - 1 && prevState.started) {
