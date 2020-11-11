@@ -1,6 +1,6 @@
 {
   "name": "gamenet",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "",
   "keywords": [],
   "main": "dist/index.js",
@@ -75,6 +75,6 @@
   },
   "dependencies": {
     "clone-deep": "^4.0.1",
-    "smnet": "^0.0.4"
+    "smnet": "^0.1.0"
   }
 }
