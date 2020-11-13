@@ -1,4 +1,4 @@
-export const cardAmount: Record<number, number> = {
+export const cardPoints: Record<number, number> = {
   1: 1, // spade set 1
   2: 2,
   3: 3,

@@ -1,5 +1,5 @@
 import { Card, Suit } from './types'
-import { cardAmount } from './constants'
+import { cardPoints } from './constants'
 
 export const minPossible = (current: number, cards: Card[]): number[] => {
   let min = Infinity
@@ -15,7 +15,7 @@ export const minPossible = (current: number, cards: Card[]): number[] => {
     } else if (number === 13) {
       next = 99
     } else {
-      next = current + cardAmount[number]
+      next = current + cardPoints[number]
     }
     if (next < min) {
       min = next
