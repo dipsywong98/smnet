@@ -209,7 +209,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
   }
 
   public async dispatch (action: Action): Promise<void> {
-    action.peerId = this.myId
+    action.peerId = action.peerId ?? this.myId
     if (this.myId !== undefined && this.myId !== null) {
       logger.info('dispatching action', action)
       await this.networkStrategy?.dispatch(action)

@@ -2,7 +2,7 @@ import { logger, NetworkReducer, useNetwork } from 'smnet'
 import { withGenericGameReducer } from './withGenericGameReducer'
 import { GenericGameState, PlayerType } from './GenericGameState'
 import { GameActionTypes, GenericGameAction } from './GenericGameAction'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useState } from 'react'
 
 export interface GameContextInterface<State, Action> {
   connect: (name: string, room: string) => Promise<void>
@@ -19,6 +19,11 @@ export interface GameContextInterface<State, Action> {
   addAi: (name: string) => Promise<void>
   dispatch: (action: Action) => Promise<void>
   playerType: (nameOrId: string | number) => PlayerType
+  myPlayerId: number
+  myLocals: string[] // array of names
+  myAis: string[] // array of names
+  getPeerId: (playerId: number) => string
+  dispatchAs: (playerId: number, action: Action) => Promise<void>
 }
 
 export enum GameAppState {
@@ -33,9 +38,40 @@ export interface GameNetworkProps<State extends GenericGameState, Action extends
   initialState: State
 }
 
-export const useGameNetwork = <State extends GenericGameState, Action extends GenericGameAction>(reducer: NetworkReducer<State, Action>, initialState: State): GameContextInterface<State, Action> => {
+export const useGameNetwork = <State extends GenericGameState, Action extends GenericGameAction> (reducer: NetworkReducer<State, Action>, initialState: State): GameContextInterface<State, Action> => {
   const [gameAppState, setGameAppState] = useState(GameAppState.HOME)
   const network = useNetwork(withGenericGameReducer(reducer), initialState)
+  const state = network.state as State
+  const myId = network.myId
+  const myPlayerId = useMemo(() => {
+    try {
+      return state.nameDict[state.members[myId as string]]
+    } catch (e) {
+      return -1
+    }
+  }, [myId, state])
+  const myLocals = useMemo(() => {
+    try {
+      return Object.keys(state.localPlayers).filter(name => state.localPlayers[name] === myId).map(peerId => state.members[peerId])
+    } catch (e) {
+      return []
+    }
+  }, [myId, state])
+  const myAis = useMemo(() => {
+    try {
+      return Object.keys(state.aiPlayers).filter(name => state.aiPlayers[name] === myId).map(peerId => state.members[peerId])
+    } catch (e) {
+      return []
+    }
+  }, [myId, state])
+
+  const getPeerId = (playerId: number): string => {
+    return Object.keys(state.members).filter(peerId => state.members[peerId] === state.players[playerId])[0]
+  }
+
+  const dispatchAs = async (playerId: number, action: Action): Promise<void> => {
+    await network.dispatch({ ...action, peerId: getPeerId(playerId) })
+  }
 
   const playerType = (nameOrId: string | number): PlayerType => {
     const name: string = typeof nameOrId === 'string' ? nameOrId : network.state.players[nameOrId]
@@ -119,17 +155,22 @@ export const useGameNetwork = <State extends GenericGameState, Action extends Ge
   return {
     connect,
     gameAppState,
-    state: network.state as State,
+    state,
     room: network.networkName,
     leave,
     isAdmin: network.isAdmin,
-    myId: network.myId,
+    myId,
     kick,
     ready,
     start,
     dispatch: network.dispatch,
     addLocal,
     addAi,
-    playerType
+    playerType,
+    myPlayerId,
+    myLocals,
+    myAis,
+    getPeerId,
+    dispatchAs
   }
 }

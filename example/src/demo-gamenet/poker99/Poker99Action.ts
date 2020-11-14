@@ -1,6 +1,5 @@
-import { GameActionTypes, GenericGameAction } from 'gamenet'
+import { GameActionTypes, GenericBoardGameAction } from 'gamenet'
 import { Card } from './types'
-import { NetworkAction } from 'smnet'
 
 export enum Poker99ActionType {
   PLAY_CARD,
@@ -18,11 +17,8 @@ export type Poker99Action = ({
   type: Poker99ActionType.PLAY_CARD
   payload: PlayCardPayload
 } | {
-  type: Poker99ActionType.LOCAL_MOVE
-  payload: Poker99Action
-} | {
   type: Poker99ActionType.END
 } | {
   type: GameActionTypes
   payload: never
-} | GenericGameAction) & NetworkAction
+}) & GenericBoardGameAction

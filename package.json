@@ -17,6 +17,7 @@
     "lerna": "^3.22.1"
   },
   "scripts": {
+    "deploy": "yarn workspace example deploy",
     "watch:smnet": "yarn workspace smnet watch",
     "watch:gamenet": "yarn workspace gamenet watch",
     "start:example": "yarn workspace example start",

@@ -18,11 +18,11 @@ TBA
 ## Usage-React
 
 ```tsx
-import {GenericGameState, useGameNetwork} from 'gamenet'
+import {GenericBoardGameState, useBoardGameNetwork} from 'gamenet'
 
 //...
 const App = () => {
-<GameNetworkProvider reducer={myReducer} initialState={new GenericGameState() /* or something extends this*/}>
+<GameNetworkProvider reducer={myReducer} initialState={new GenericBoardGameState() /* or something extends this*/}>
   {/* your game GUI or room */}
   <SomeComponent/>
 </GameNetworkProvider>
@@ -30,7 +30,7 @@ const App = () => {
 
 //...
 const SomeComponent = () => {
-  const { room, state, leave, isAdmin, myId, kick, ready, start } = useGameNetwork()
+  const { room, state, leave, isAdmin, myId, kick, ready, start } = useBoardGameNetwork()
 // ...
 }
 ```
@@ -49,7 +49,7 @@ interface UseGameNetwork {
   gameAppState: GameAppState
 
   // sate stored in network
-  state: GenericGameState
+  state: GenericBoardGameState
 
   // room name
   room?: string
@@ -74,6 +74,6 @@ interface UseGameNetwork {
   start: () => Promise<void>
 
   // general dispatch function
-  dispatch: (action: GenericGameAction) => Promise<void>
+  dispatch: (action: GenericBoardGameAction) => Promise<void>
 }
 ```

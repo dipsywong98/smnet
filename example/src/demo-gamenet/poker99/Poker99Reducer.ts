@@ -121,8 +121,6 @@ export const Poker99Reducer: NetworkReducer<Poker99State, Poker99Action> = (prev
       return withInitGame(prevState)
     case Poker99ActionType.PLAY_CARD:
       return withPlayCard(playerId(), action.payload)(cloneDeep(prevState))
-    case Poker99ActionType.LOCAL_MOVE:
-      return Poker99Reducer(prevState, action.payload)
     case Poker99ActionType.END:
       return { ...prevState, started: false }
   }
