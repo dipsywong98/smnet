@@ -51,41 +51,43 @@ export const Game: FunctionComponent = () => {
       type: Poker99ActionType.END
     }).catch(handleError)
   }
-  return (<div>
-    <div>
-      <h3>{state.points}</h3>
-      <h6>{state.players[state.turn]}{'\''}s turn</h6>
-      {error !== '' && <div style={{ color: 'red' }}>{error}</div>}
-      {state.winner !== undefined && <div>winner is {state.players[state.winner]}
-        <button onClick={again}>again</button>
-      </div>}
-      {state.players.map((name, id) => (
-        <span
-          key={name}
-          onClick={() => setTarget(id)}
-          style={{
-            fontWeight: state.turn === id ? 'bold' : 'normal',
-            textDecorationLine: state.dead[id] ? 'line-through' : 'none'
-          }}>
+  return (
+    <div style={{ pointerEvents: 'all' }}>
+      <div>
+        <h3>{state.points}</h3>
+        <h6>{state.players[state.turn]}{'\''}s turn</h6>
+        {error !== '' && <div style={{ color: 'red' }}>{error}</div>}
+        {state.winner !== undefined && state.winner !== null && <div>winner is {state.players[state.winner]}
+          <button onClick={again}>again</button>
+        </div>}
+        {state.players.map((name, id) => (
+          <span
+            key={name}
+            onClick={() => setTarget(id)}
+            style={{
+              fontWeight: state.turn === id ? 'bold' : 'normal',
+              textDecorationLine: state.dead[id] ? 'line-through' : 'none'
+            }}>
           {name} {d}
         </span>
-      ))}
-      <div>
-        {
-          myLocals.length === 0
-            ? renderDeck(myPlayerId)
-            : renderLocalDeck()
-        }
+        ))}
+        <div>
+          {
+            myLocals.length === 0
+              ? renderDeck(myPlayerId)
+              : renderLocalDeck()
+          }
+        </div>
+        <div>
+          target: {target}
+        </div>
+        <button onClick={() => setIncrement(!increment)}>
+          {increment ? '+' : '-'}
+        </button>
       </div>
       <div>
-        target: {target}
+        {state.logs.slice().reverse().map((s, k) => <div key={k}>{s}</div>)}
       </div>
-      <button onClick={() => setIncrement(!increment)}>
-        {increment ? '+' : '-'}
-      </button>
     </div>
-    <div>
-      {state.logs.slice().reverse().map((s, k) => <div key={k}>{s}</div>)}
-    </div>
-  </div>)
+  )
 }

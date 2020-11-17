@@ -1,60 +1,192 @@
 import React, { FunctionComponent, useState } from 'react'
 import { PlayerType } from 'gamenet'
 import { usePoker99 } from './withPoker99Network'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Grid,
+  IconButton,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemSecondaryAction,
+  ListItemText,
+  Paper,
+  TextField,
+  Typography,
+  useTheme
+} from '@material-ui/core'
+import { CancelOutlined, Person, PersonOutline, Visibility } from '@material-ui/icons'
+import { AccountCheck, Crown, Robot } from 'mdi-material-ui'
+import { RobotAdd } from './RobotAdd'
+import { PersonAdd } from './PersonAdd'
+import Alert from '@material-ui/lab/Alert'
+import { getRandomName } from './getRandomName'
 
 export const Room: FunctionComponent = () => {
   const { room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType } = usePoker99()
   const [error, setError] = useState('')
   const [name, setName] = useState('')
+  const [creatingLocal, setCreatingLocal] = useState<boolean | undefined>(undefined)
+  const theme = useTheme()
   const handleStartClick = async (): Promise<void> => {
     await start().catch((e: Error) => setError(e.message))
   }
   const handleReadyClick = async (): Promise<void> => {
     await ready().catch((e: Error) => setError(e.message))
   }
-  const handleAddLocalClick = async (): Promise<void> => {
-    setName('')
-    await addLocal(name).catch((e: Error) => setError(e.message))
-  }
   const handleAddAiClick = async (): Promise<void> => {
+    await addAi(getRandomName()).catch((e: Error) => setError(e.message))
+  }
+  const handleCloseClick = (): void => {
     setName('')
-    await addAi(name).catch((e: Error) => setError(e.message))
+    setCreatingLocal(undefined)
   }
-  const displayPlayerType = {
-    [PlayerType.NORMAL]: '',
-    [PlayerType.LOCAL]: '(local)',
-    [PlayerType.AI]: '(ai)'
+  const createLocalOrAI = async (): Promise<void> => {
+    if (name !== '') {
+      if (creatingLocal === true) {
+        await addLocal(name).catch((e: Error) => setError(e.message))
+      } else if (creatingLocal === false) {
+        await addAi(name).catch((e: Error) => setError(e.message))
+      }
+    }
+    handleCloseClick()
   }
+  const getIcon = (peerId: string, name: string): React.ReactNode => {
+    if (peerId in state.spectators) {
+      return <Grid item title='spectator'>
+        <Visibility/>
+      </Grid>
+    } else if (state.networkName === peerId) {
+      return <Grid item title='host'>
+        <Crown/>
+      </Grid>
+    } else if (playerType(name) === PlayerType.NORMAL) {
+      if(state.ready[peerId]) {
+        return <Grid item title='player ready'>
+          <AccountCheck/>
+        </Grid>
+      }else{
+        return <Grid item title='player not ready'>
+          <Person/>
+        </Grid>
+      }
+    } else if (playerType(name) === PlayerType.LOCAL) {
+      return <Grid item title='hot seat player'>
+        <PersonOutline/>
+      </Grid>
+    } else if (playerType(name) === PlayerType.AI) {
+      return <Grid item title='AI player'>
+        <Robot/>
+      </Grid>
+    }
+  }
+
+  const renderHintText = (peerId: string, name: string) => {
+    if (peerId === state.networkName) {
+      return `${name} is the host`
+    }else if (peerId in state.spectators) {
+      return `${name} is a spectator`
+    } else if (peerId in state.localPlayers) {
+      return `${name} is a local player of ${state.members[state.localPlayers[peerId]]}`
+    } else if (peerId in state.aiPlayers) {
+      return `${name} is an ai player of ${state.members[state.aiPlayers[peerId]]}`
+    } else {
+      if (state.ready[peerId]) {
+        return `${name} is not ready yet`
+      } else {
+        return `${name} is ready`
+      }
+    }
+  }
+
   return (
-    <div>
-      <div>Room: {room}</div>
-      <div>
-        {Object.entries(state.members).map(([id, name]) => (
-          <div key={name}>
-            {name} {displayPlayerType[playerType(name)]}
-            {(id !== myId && isAdmin) &&
-            <button onClick={async () => await kick(id)}>kick</button>
-            }
-            {(state.ready[id] ?? false) && '(ready)'}
-          </div>)
-        )}
-      </div>
-      <div>
-        <button onClick={leave}>leave</button>
-        {isAdmin
-          ? <button onClick={handleStartClick}>start</button>
-          : <button onClick={handleReadyClick}>ready</button>}
-      </div>
-      <div>
-        <input
-          placeholder='new local/ai player name'
-          value={name}
-          onChange={({ target: { value } }) => setName(value)}
-        />
-        <button onClick={handleAddLocalClick}>Add local</button>
-        <button onClick={handleAddAiClick}>Add AI</button>
-      </div>
-      {error !== '' && <div>{error}</div>}
-    </div>
+    <Paper elevation={3} style={{ padding: '32px 64px', minWidth: '400px' }}>
+      <Grid container justify='flex-end' direction='column' spacing={3}>
+        <Grid item>
+          <Typography variant="h5">Room: {room}</Typography>
+        </Grid>
+        <Grid item>
+          <Grid container justify='space-between' alignItems='flex-end'>
+            <Grid item>
+              <Typography variant="h6">Players</Typography>
+            </Grid>
+            <Grid item>
+              <IconButton size='medium' title='Add Local Hot Seat player' onClick={() => setCreatingLocal(true)}>
+                <PersonAdd/>
+              </IconButton>
+              <IconButton size='medium' title='Add AI Player' onClick={handleAddAiClick}>
+                <RobotAdd/>
+              </IconButton>
+            </Grid>
+          </Grid>
+          <Divider/>
+          <List>
+            {Object.entries(state.members).map(([id, name]) => {
+              const color = (id === state.networkName || [PlayerType.LOCAL, PlayerType.AI].includes(playerType(name)))
+                ? theme.palette.primary.main
+                : state.ready[id] ? theme.palette.success.main : theme.palette.text.secondary
+              return (
+                <ListItem
+                  key={id}
+                  title={renderHintText(id, name)}
+                  style={{ color }}>
+                  <ListItemIcon>
+                    <span style={{ color }}>
+                      {getIcon(id, name)}
+                    </span>
+                  </ListItemIcon>
+                  <ListItemText>
+                    {name}
+                  </ListItemText>
+                  {((isAdmin || [PlayerType.LOCAL, PlayerType.AI].includes(playerType(name))) && id !== myId && id !== state.networkName) &&
+                  <ListItemSecondaryAction>
+                    <IconButton edge="end" aria-label="delete" onClick={() => kick(id)} title='Kick'>
+                      <CancelOutlined color='error'/>
+                    </IconButton>
+                  </ListItemSecondaryAction>}
+                </ListItem>
+              )
+            })}
+          </List>
+        </Grid>
+        {error !== '' && <Alert severity='error'>{error}</Alert>}
+        <Grid item container justify='flex-end' spacing={1}>
+          <Grid item>
+            <Button variant='contained' color='secondary' onClick={leave}>leave</Button>
+          </Grid>
+          <Grid item>
+            {isAdmin
+              ? <Button variant='contained' color='primary' onClick={handleStartClick}>start</Button>
+              : <Button variant='contained' color='primary' onClick={handleReadyClick}>{state.ready[myId ?? ''] ? 'unready' : 'ready'}</Button>}
+          </Grid>
+        </Grid>
+      </Grid>
+      <Dialog open={creatingLocal !== undefined} onClose={handleCloseClick} aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">Name for new {creatingLocal === true ? 'local' : 'AI'} player</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Name"
+            fullWidth
+            value={name}
+            onChange={({ target }) => setName(target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseClick} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={createLocalOrAI} color="primary">
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Paper>
   )
 }
