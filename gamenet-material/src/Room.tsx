@@ -1,6 +1,5 @@
-import React, { FunctionComponent, useState } from 'react'
-import { PlayerType } from 'gamenet'
-import { usePoker99 } from './withPoker99Network'
+import React, { PropsWithChildren, useState } from 'react'
+import { BoardGameContextInterface, GenericBoardGameState, GenericGameAction, PlayerType } from 'gamenet'
 import {
   Button,
   Dialog,
@@ -27,8 +26,7 @@ import { PersonAdd } from './PersonAdd'
 import Alert from '@material-ui/lab/Alert'
 import { getRandomName } from './getRandomName'
 
-export const Room: FunctionComponent = () => {
-  const { room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType } = usePoker99()
+export const Room = <S extends GenericBoardGameState, A extends GenericGameAction>({ room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType }: PropsWithChildren<BoardGameContextInterface<S, A>> ) => {
   const [error, setError] = useState('')
   const [name, setName] = useState('')
   const [creatingLocal, setCreatingLocal] = useState<boolean | undefined>(undefined)

@@ -1,10 +1,8 @@
 import React, { FunctionComponent, useState } from 'react'
-import { usePoker99 } from './withPoker99Network'
 import { Button, Grid, Paper, TextField, Typography } from '@material-ui/core'
 import { getRandomName } from './getRandomName'
 
-export const Home: FunctionComponent = () => {
-  const { connect } = usePoker99()
+export const Home: FunctionComponent<{connect: (name: string, room: string) => Promise<void>}> = ({ connect }) => {
   const [name, setName] = useState(getRandomName())
   const [room, setRoom] = useState('')
   const [error, setError] = useState('')

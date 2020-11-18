@@ -1,0 +1,6 @@
+export * from './GamePagesSlider'
+export * from './getRandomName'
+export * from './Home'
+export * from './PersonAdd'
+export * from './RobotAdd'
+export * from './Room'

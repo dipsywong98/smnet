@@ -2,7 +2,8 @@
   "packages": [
     "example",
     "smnet",
-    "gamenet"
+    "gamenet",
+    "gamenet-material"
   ],
   "version": "0.1.0"
 }
