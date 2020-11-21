@@ -20,6 +20,7 @@
     "node": ">=6.0.0"
   },
   "scripts": {
+    "prepublishOnly": "yarn build",
     "build": "microbundle-crl --no-compress --format modern,cjs",
     "watch": "microbundle-crl watch --no-compress --format modern,cjs",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx src",

@@ -104,7 +104,6 @@ export const withEndTurn: StateMapper = prevState => {
 }
 
 export const Poker99Reducer: NetworkReducer<Poker99State, Poker99Action> = (prevState, action) => {
-  console.log('poker99 reducer')
   const peerId = action.peerId
   if (peerId === undefined) {
     throw new Error('Expect peerId in action')

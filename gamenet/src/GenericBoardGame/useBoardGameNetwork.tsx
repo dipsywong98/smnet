@@ -1,11 +1,11 @@
-import { NetworkReducer } from 'smnet'
+import { NetworkAction, NetworkReducer } from 'smnet'
 import { GenericBoardGameState } from './GenericBoardGameState'
 import { GenericBoardGameAction } from './GenericBoardGameAction'
 import { GameContextInterface, GameNetworkProps, useGameNetwork } from '../Generic/useGameNetwork'
 import { withGenericBoardGameReducer } from './withGenericBoardGameReducer'
 import { useEffect, useRef, useState } from 'react'
 
-export interface BoardGameContextInterface<State extends GenericBoardGameState, Action extends GenericBoardGameAction> extends GameContextInterface<State, Action> {
+export interface BoardGameContextInterface<State extends GenericBoardGameState, Action extends NetworkAction> extends GameContextInterface<State, Action> {
   hideDeck: boolean
   setHideDeck: (flag: boolean) => void
   renderedDeckId: number
@@ -13,13 +13,13 @@ export interface BoardGameContextInterface<State extends GenericBoardGameState, 
   setError: (message: string) => void
 }
 
-type AiAction<State extends GenericBoardGameState, Action extends GenericBoardGameAction> = (state: State, turn: number) => Action
+type AiAction<State extends GenericBoardGameState, Action extends NetworkAction> = (state: State, turn: number) => Action
 
 export interface BoardGameNetworkProps<State extends GenericBoardGameState, Action extends GenericBoardGameAction> extends GameNetworkProps<State, Action> {
   aiAction: AiAction<State, Action>
 }
 
-export const useBoardGameNetwork = <State extends GenericBoardGameState, Action extends GenericBoardGameAction> (reducer: NetworkReducer<State, Action>, initialState: State, aiAction: AiAction<State, Action>): BoardGameContextInterface<State, Action> => {
+export const useBoardGameNetwork = <State extends GenericBoardGameState, Action extends NetworkAction> (reducer: NetworkReducer<State, Action>, initialState: State, aiAction: AiAction<State, Action>): BoardGameContextInterface<State, Action> => {
   const network = useGameNetwork(withGenericBoardGameReducer(reducer), initialState)
   const { myLocals, myPlayerId, myAis, dispatchAs } = network
   const state = network.state as State

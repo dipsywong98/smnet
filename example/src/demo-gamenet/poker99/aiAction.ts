@@ -14,7 +14,6 @@ export const aiAction = (state: Poker99State, turn: number): Poker99Action => {
   const cards = state.playerDeck[turn]
   const points = state.points
   const normalCards = cards.filter(isNormalCard).sort((a, b) => cardPoints[b.number] - cardPoints[a.number])
-  console.log('normal cards', normalCards, 'points', points)
   const card13 = cards.find(c => c.number === 13)
   if (card13 !== undefined) {
     if (points !== 99 && normalCards.length < 3) {
@@ -28,7 +27,6 @@ export const aiAction = (state: Poker99State, turn: number): Poker99Action => {
   }
 
   for (const card of normalCards) {
-    console.log('should play normal?', card, points + cardPoints[card.number] <= 99)
     if (points + cardPoints[card.number] <= 99) {
       return ({
         type: Poker99ActionType.PLAY_CARD,

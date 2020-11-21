@@ -24,8 +24,6 @@ export type GenericGameAction = ({
 } | {
   type: GameActionTypes.REMOVE_LOCAL_AI
   payload: string
-} | {
-  type: Exclude<number|string, GameActionTypes>
 }) & NetworkAction
 
 export enum GameActionTypes {

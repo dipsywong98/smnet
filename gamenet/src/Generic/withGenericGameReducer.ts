@@ -1,4 +1,4 @@
-import { NetworkReducer } from 'smnet'
+import { NetworkAction, NetworkReducer } from 'smnet'
 import { GenericGameState } from './GenericGameState'
 import { GameActionTypes, GenericGameAction } from './GenericGameAction'
 import { v4 } from 'uuid'
@@ -164,8 +164,8 @@ export const generalGameReducer: NetworkReducer<GenericGameState, GenericGameAct
   }
 }
 
-export const withGenericGameReducer = <State extends GenericGameState, Action extends GenericGameAction> (reducer: NetworkReducer<State, Action>): NetworkReducer<GenericGameState, GenericGameAction> => {
+export const withGenericGameReducer = <State extends GenericGameState, Action extends NetworkAction> (reducer: NetworkReducer<State, Action>): NetworkReducer<GenericGameState, NetworkAction> => {
   return (prevState, action) => {
-    return reducer(generalGameReducer(prevState, action) as State, action as Action)
+    return reducer(generalGameReducer(prevState, action as GenericGameAction) as State, action as Action)
   }
 }

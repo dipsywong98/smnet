@@ -1,4 +1,4 @@
-import { compose } from './GenericwithGenericBoardGameReducer'
+import { compose } from './Generic/withGenericGameReducer'
 
 it('compose functions', () => {
   const a = (s: string): string => `${s}a`

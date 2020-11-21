@@ -20,7 +20,9 @@
     "node": ">=6.0.0"
   },
   "scripts": {
-    "build": "microbundle-crl --no-compress --format modern,cjs",
+    "prepublishOnly": "yarn build",
+    "build": "rimraf build dist && cross-env NODE_ENV=production tsc -p ./tsconfig.json && rollup -c && rimraf .rpt2_cache dist/.rpt2_cache",
+    "build-old": "microbundle-crl --no-compress --format modern,cjs",
     "watch": "microbundle-crl watch --no-compress --format modern,cjs",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx src",
     "test": "cross-env CI=1 SKIP_PREFLIGHT_CHECK=true react-scripts test --env=jsdom"

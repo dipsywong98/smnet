@@ -1,7 +1,7 @@
-import { logger, NetworkReducer, useNetwork } from 'smnet'
+import { logger, NetworkAction, NetworkReducer, useNetwork } from 'smnet'
 import { withGenericGameReducer } from './withGenericGameReducer'
 import { GenericGameState, PlayerType } from './GenericGameState'
-import { GameActionTypes, GenericGameAction } from './GenericGameAction'
+import { GameActionTypes } from './GenericGameAction'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 
 export interface GameContextInterface<State, Action> {
@@ -32,13 +32,13 @@ export enum GameAppState {
   GAME
 }
 
-export interface GameNetworkProps<State extends GenericGameState, Action extends GenericGameAction> {
+export interface GameNetworkProps<State extends GenericGameState, Action extends NetworkAction> {
   children: ReactNode
   reducer: NetworkReducer<State, Action>
   initialState: State
 }
 
-export const useGameNetwork = <State extends GenericGameState, Action extends GenericGameAction> (reducer: NetworkReducer<State, Action>, initialState: State): GameContextInterface<State, Action> => {
+export const useGameNetwork = <State extends GenericGameState, Action extends NetworkAction> (reducer: NetworkReducer<State, Action>, initialState: State): GameContextInterface<State, Action> => {
   const [gameAppState, setGameAppState] = useState(GameAppState.HOME)
   const network = useNetwork(withGenericGameReducer(reducer), initialState)
   const state = network.state as State
