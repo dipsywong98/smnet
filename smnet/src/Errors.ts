@@ -3,6 +3,11 @@ export class AlreadyJoinedNetworkError extends Error {
   name = 'AlreadyJoinedNetworkError'
 }
 
+export class AlreadyConnectingError extends Error {
+  message = 'already connecting to network'
+  name = 'AlreadyConnectingError'
+}
+
 export class PlayerNameAlreadyExistError extends Error {
   message = 'player name already exist'
   name = 'PlayerNameAlreadyExistError'

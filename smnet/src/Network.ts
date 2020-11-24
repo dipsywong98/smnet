@@ -4,7 +4,7 @@ import Peer, { DataConnection } from 'peerjs'
 import { NetworkStrategy } from './NetworkStrategies/NetworkStrategy'
 import { StarHostStrategy } from './NetworkStrategies/StarHostStrategy'
 import checksum from 'checksum'
-import { AlreadyJoinedNetworkError } from './Errors'
+import { AlreadyConnectingError, AlreadyJoinedNetworkError } from './Errors'
 import { StarMemberStrategy } from './NetworkStrategies/StarMemberStrategy'
 import { DataStream } from './DataStream'
 import { StateManager } from './StateManager'
@@ -29,6 +29,8 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
   private networkStrategy?: NetworkStrategy<State, Action>
   private networkName?: string
   private readonly dataStream = new DataStream()
+  private _connecting = false
+  private _dispatching = false
 
   constructor (stateReducer: NetworkReducer<State, Action>, initialStateOrManager: State | StateManager<State>) {
     if (initialStateOrManager instanceof StateManager) {
@@ -45,6 +47,14 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
 
   public get connected (): boolean {
     return this.networkName !== undefined
+  }
+
+  public get connecting (): boolean {
+    return this._connecting
+  }
+
+  public get dispatching (): boolean {
+    return this._dispatching
   }
 
   public getNetworkName (): string | undefined {
@@ -120,18 +130,28 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     if (this.peer !== undefined) {
       throw new AlreadyJoinedNetworkError()
     }
-    peerFactory = peerFactory ?? new PeerFactory()
-    try {
-      await this.initAsStarHost(networkName, peerFactory)
-      this.stateManager.reset()
-      this.setState({ ...this.getState(), networkName })
-    } catch (e) {
-      logger.info('cannot init as host, try to init as member')
-      await this.initAsStarMember(networkName, peerFactory)
+    if (this._connecting) {
+      throw new AlreadyConnectingError()
     }
-    await this.dispatch({
-      type: 'member-join'
-    } as unknown as Action)
+    this._connecting = true
+    try {
+      peerFactory = peerFactory ?? new PeerFactory()
+      try {
+        await this.initAsStarHost(networkName, peerFactory)
+        this.stateManager.reset()
+        this.setState({ ...this.getState(), networkName })
+      } catch (e) {
+        logger.info('cannot init as host, try to init as member')
+        await this.initAsStarMember(networkName, peerFactory)
+      }
+      await this.dispatch({
+        type: 'member-join'
+      } as unknown as Action)
+      this._connecting = false
+    } catch (e) {
+      this._connecting = false
+      throw e
+    }
   }
 
   /**
@@ -209,13 +229,20 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
   }
 
   public async dispatch (action: Action): Promise<void> {
-    action.peerId = action.peerId ?? this.myId
-    if (this.myId !== undefined && this.myId !== null) {
-      logger.info('dispatching action', action)
-      await this.networkStrategy?.dispatch(action)
-      logger.info('dispatched action', action)
-    } else {
-      logger.error('not connected')
+    try {
+      this._dispatching = true
+      action.peerId = action.peerId ?? this.myId
+      if (this.myId !== undefined && this.myId !== null) {
+        logger.info('dispatching action', action)
+        await this.networkStrategy?.dispatch(action)
+        logger.info('dispatched action', action)
+      } else {
+        logger.error('not connected')
+      }
+      this._dispatching = false
+    } catch (e) {
+      this._dispatching = false
+      throw e
     }
   }
 

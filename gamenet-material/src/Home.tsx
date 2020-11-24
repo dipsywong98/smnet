@@ -1,8 +1,10 @@
 import React, { FunctionComponent, useState } from 'react'
 import { Button, Grid, Paper, TextField, Typography } from '@material-ui/core'
 import { getRandomName } from './getRandomName'
+import { Alert } from '@material-ui/lab'
+import { Loading } from './Loading'
 
-export const Home: FunctionComponent<{connect: (name: string, room: string) => Promise<void>}> = ({ connect }) => {
+export const Home: FunctionComponent<{ connect: (name: string, room: string) => Promise<void>, connecting: boolean }> = ({ connect, connecting }) => {
   const [name, setName] = useState(getRandomName())
   const [room, setRoom] = useState('')
   const [error, setError] = useState('')
@@ -13,21 +15,23 @@ export const Home: FunctionComponent<{connect: (name: string, room: string) => P
         <Grid item>
           <Typography variant="h5">Welcome to Poker 99</Typography>
         </Grid>
-        {error !== '' && <Grid item>{error}</Grid>}
         <Grid item>
           <TextField label='Your Name' value={name} onChange={({ target: { value } }) => setName(value)} fullWidth/>
         </Grid>
         <Grid item>
           <TextField label='Room Code' value={room} onChange={({ target: { value } }) => setRoom(value)} fullWidth/>
         </Grid>
+        {error !== '' && <Alert severity='error'>{error}</Alert>}
         <Grid item container justify='flex-end'>
-          <Button
-            color='primary'
-            variant='contained'
-            disabled={name === '' || room === ''}
-            onClick={join}>
-            join
-          </Button>
+          <Loading loading={connecting}>
+            <Button
+              color='primary'
+              variant='contained'
+              disabled={name === '' || room === '' || connecting}
+              onClick={join}>
+              join
+            </Button>
+          </Loading>
         </Grid>
       </Grid>
     </Paper>

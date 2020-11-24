@@ -6,6 +6,9 @@ import { ReactNode, useEffect, useMemo, useState } from 'react'
 
 export interface GameContextInterface<State, Action> {
   connect: (name: string, room: string) => Promise<void>
+  connected: boolean
+  connecting: boolean
+  dispatching: boolean
   leave: () => Promise<void>
   gameAppState: GameAppState
   state: State
@@ -154,6 +157,9 @@ export const useGameNetwork = <State extends GenericGameState, Action extends Ne
   }, [network.state, network.networkName])
   return {
     connect,
+    connected: network.connected,
+    connecting: network.connecting,
+    dispatching: network.dispatching,
     gameAppState,
     state,
     room: network.networkName,

@@ -25,8 +25,9 @@ import { RobotAdd } from './RobotAdd'
 import { PersonAdd } from './PersonAdd'
 import Alert from '@material-ui/lab/Alert'
 import { getRandomName } from './getRandomName'
+import { Loading } from './Loading'
 
-export const Room = <S extends GenericBoardGameState, A extends GenericGameAction>({ room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType }: PropsWithChildren<BoardGameContextInterface<S, A>> ) => {
+export const Room = <S extends GenericBoardGameState, A extends GenericGameAction>({ room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType, dispatching }: PropsWithChildren<BoardGameContextInterface<S, A>> ) => {
   const [error, setError] = useState('')
   const [name, setName] = useState('')
   const [creatingLocal, setCreatingLocal] = useState<boolean | undefined>(undefined)
@@ -103,7 +104,7 @@ export const Room = <S extends GenericBoardGameState, A extends GenericGameActio
   }
 
   return (
-    <Paper elevation={3} style={{ padding: '32px 64px', minWidth: '400px' }}>
+    <Paper elevation={3} style={{ padding: '32px 64px', width: '400px' }}>
       <Grid container justify='flex-end' direction='column' spacing={3}>
         <Grid item>
           <Typography variant="h5">Room: {room}</Typography>
@@ -158,9 +159,11 @@ export const Room = <S extends GenericBoardGameState, A extends GenericGameActio
             <Button variant='contained' color='secondary' onClick={leave}>leave</Button>
           </Grid>
           <Grid item>
-            {isAdmin
-              ? <Button variant='contained' color='primary' onClick={handleStartClick}>start</Button>
-              : <Button variant='contained' color='primary' onClick={handleReadyClick}>{state.ready[myId ?? ''] ? 'unready' : 'ready'}</Button>}
+            <Loading loading={dispatching}>
+              {isAdmin
+                ? <Button variant='contained' color='primary' disabled={dispatching} onClick={handleStartClick}>start</Button>
+                : <Button variant='contained' color='primary' disabled={dispatching} onClick={handleReadyClick}>{state.ready[myId ?? ''] ? 'unready' : 'ready'}</Button>}
+            </Loading>
           </Grid>
         </Grid>
       </Grid>

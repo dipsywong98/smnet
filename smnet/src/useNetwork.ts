@@ -8,6 +8,8 @@ import { logger } from './Logger'
 export interface UseNetworkReturn<State extends NetworkState, Action extends NetworkAction> {
   state: State
   connected: boolean
+  connecting: boolean
+  dispatching: boolean
   networkName: string | undefined
   join: (networkName: string, peerFactory?: PeerFactory) => Promise<void>
   leave: () => Promise<void>
@@ -19,6 +21,8 @@ export interface UseNetworkReturn<State extends NetworkState, Action extends Net
 
 export function useNetwork<State extends NetworkState = NetworkState, Action extends NetworkAction = NetworkAction> (reducer: NetworkReducer<State, Action>, initialState: State): UseNetworkReturn<State, Action> {
   const [state, setState] = useState(initialState)
+  const [connecting, setConnecting] = useState(false)
+  const [dispatching, setDispatching] = useState(false)
   const network = useMemo(() => new Network(reducer, StateManager.make(initialState, setState, 10)), [])
   useEffect(() => {
     if (process.env.REACT_APP_DISABLE_SMNET_WINDOW_VAR === undefined) {
@@ -32,12 +36,26 @@ export function useNetwork<State extends NetworkState = NetworkState, Action ext
         .catch(logger.error)
     }
   }, [network])
+  const join = async (networkName: string, peerFactory?: PeerFactory) => {
+    setConnecting(true)
+    await network.join(networkName, peerFactory).finally(() => {
+      setConnecting(false)
+    })
+  }
+  const dispatch = async (action: Action) => {
+    setDispatching(true)
+    await network.dispatch(action).finally(() => {
+      setDispatching(false)
+    })
+  }
   return Object.freeze({
-    join: network.join.bind(network),
+    join,
     leave: network.leave.bind(network),
-    dispatch: network.dispatch.bind(network),
+    dispatch,
     state,
     connected: network.connected,
+    connecting: network.connecting,
+    dispatching: network.dispatching,
     networkName: network.getNetworkName(),
     isAdmin: network.isAdmin,
     myId: network.myId,
