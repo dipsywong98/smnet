@@ -48,7 +48,7 @@ const withInitGame: StateMapper = (prevState: Poker99State) => {
     turn: 0,
     dead: {},
     logs: ['game started'],
-    winner: undefined
+    winner: null
   }
   prevState.drawDeck = shuffle(getFullDeck())
   for (let id = 0; id < prevState.players.length; id++) {

@@ -39,7 +39,7 @@ export const useBoardGameNetwork = <State extends GenericBoardGameState, Action 
     setError(e.message)
   }
   useEffect(() => {
-    if (myAis.includes(state.players[state.turn]) && state.started && state.winner === undefined) {
+    if (myAis.includes(state.players[state.turn]) && state.started && state.winner === null) {
       const cb = (): void => {
         const action = aiAction(state, state.turn)
         // action.peerId = Object.keys(state.members).filter(peerId => state.members[peerId] === state.players[state.turn])[0]

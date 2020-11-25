@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom'
 import './index.css'
 import reportWebVitals from './reportWebVitals'
 import { GameApp } from './demo-gamenet/GameApp'
+import checksum from 'checksum'
+
+// @ts-ignore
+window.checksum = checksum
 
 ReactDOM.render(
   <GameApp/>,

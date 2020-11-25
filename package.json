@@ -22,6 +22,10 @@
     "watch:smnet": "yarn workspace smnet watch",
     "watch:gamenet": "yarn workspace gamenet watch",
     "start:example": "yarn workspace example start",
+    "build-fast:smnet": "yarn workspace smnet build-fast",
+    "build-fast:gamenet": "yarn workspace gamenet build-fast",
+    "build-fast:gamenet-material": "yarn workspace gamenet-material build-fast",
+    "build-fast": "run-s build-fast:*",
     "dev": "run-p start:* watch:*"
   }
 }
