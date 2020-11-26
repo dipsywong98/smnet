@@ -19,7 +19,7 @@ export interface BoardGameNetworkProps<State extends GenericBoardGameState, Acti
   aiAction: AiAction<State, Action>
 }
 
-export const useBoardGameNetwork = <State extends GenericBoardGameState, Action extends NetworkAction> (reducer: NetworkReducer<State, Action>, initialState: State, aiAction: AiAction<State, Action>): BoardGameContextInterface<State, Action> => {
+export const useBoardGameNetwork = <State extends GenericBoardGameState, Action extends NetworkAction> (reducer: NetworkReducer<State, Action>, initialState: State, aiAction?: AiAction<State, Action>): BoardGameContextInterface<State, Action> => {
   const network = useGameNetwork(withGenericBoardGameReducer(reducer), initialState)
   const { myLocals, myPlayerId, myAis, dispatchAs } = network
   const state = network.state as State
@@ -39,7 +39,7 @@ export const useBoardGameNetwork = <State extends GenericBoardGameState, Action 
     setError(e.message)
   }
   useEffect(() => {
-    if (myAis.includes(state.players[state.turn]) && state.started && state.winner === null) {
+    if (aiAction !== undefined && myAis.includes(state.players[state.turn]) && state.started && state.winner === null) {
       const cb = (): void => {
         const action = aiAction(state, state.turn)
         // action.peerId = Object.keys(state.members).filter(peerId => state.members[peerId] === state.players[state.turn])[0]
