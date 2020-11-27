@@ -1,6 +1,6 @@
 {
   "name": "gamenet-material",
-  "version": "0.2.2",
+  "version": "0.2.5",
   "description": "",
   "keywords": [],
   "main": "dist/index.js",
