@@ -6,6 +6,12 @@
 
 (Currently only have star network, but seems that is good enough already)
 
+[gamenet(-material) demo](https://dipsywong98.github.io/poker99/)
+
+[gamenet(-material) demo code](https://github.com/dipsywong98/poker99)
+
+[smnet example](https://github.com/dipsywong98/smnet/tree/master/example)
+
 ## Install
 
 ```sh

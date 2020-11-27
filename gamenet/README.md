@@ -2,6 +2,10 @@
 
 > GameNetwork is a decentralized peer to peer state management store for making state save multiplayer game based on smnet.
 
+[demo](https://dipsywong98.github.io/poker99/)
+
+[demo code](https://github.com/dipsywong98/poker99)
+
 ## Install
 
 ```sh

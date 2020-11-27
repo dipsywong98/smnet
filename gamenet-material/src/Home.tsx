@@ -4,7 +4,7 @@ import { getRandomName } from './getRandomName'
 import { Alert } from '@material-ui/lab'
 import { Loading } from './Loading'
 
-export const Home: FunctionComponent<{ connect: (name: string, room: string) => Promise<void>, connecting: boolean }> = ({ connect, connecting }) => {
+export const Home: FunctionComponent<{ connect: (name: string, room: string) => Promise<void>, connecting: boolean, gameName: string }> = ({ connect, connecting, gameName }) => {
   const [name, setName] = useState(getRandomName())
   const [room, setRoom] = useState('')
   const [error, setError] = useState('')
@@ -13,7 +13,7 @@ export const Home: FunctionComponent<{ connect: (name: string, room: string) => 
     <Paper elevation={3} style={{ padding: '32px 64px' }}>
       <Grid container justify='flex-end' direction='column' spacing={3}>
         <Grid item>
-          <Typography variant="h5">Welcome to Poker 99</Typography>
+          <Typography variant="h5">Welcome to {gameName}</Typography>
         </Grid>
         <Grid item>
           <TextField label='Your Name' value={name} onChange={({ target: { value } }) => setName(value)} fullWidth/>
