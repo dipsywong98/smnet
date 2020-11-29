@@ -1,7 +1,6 @@
 import { NetworkAction, NetworkReducer } from 'smnet'
 import { GenericBoardGameState } from './GenericBoardGameState'
-import { GenericBoardGameAction } from './GenericBoardGameAction'
-import { GameContextInterface, GameNetworkProps, useGameNetwork } from '../Generic/useGameNetwork'
+import { GameContextInterface, useGameNetwork } from '../Generic/useGameNetwork'
 import { withGenericBoardGameReducer } from './withGenericBoardGameReducer'
 import { useEffect, useRef, useState } from 'react'
 
@@ -11,13 +10,11 @@ export interface BoardGameContextInterface<State extends GenericBoardGameState, 
   renderedDeckId: number
   error: string
   setError: (message: string) => void
+  revealDeck: () => void
+  resetError: () => void
 }
 
 type AiAction<State extends GenericBoardGameState, Action extends NetworkAction> = (state: State, turn: number) => Action
-
-export interface BoardGameNetworkProps<State extends GenericBoardGameState, Action extends GenericBoardGameAction> extends GameNetworkProps<State, Action> {
-  aiAction: AiAction<State, Action>
-}
 
 export const useBoardGameNetwork = <State extends GenericBoardGameState, Action extends NetworkAction> (reducer: NetworkReducer<State, Action>, initialState: State, aiAction?: AiAction<State, Action>): BoardGameContextInterface<State, Action> => {
   const network = useGameNetwork(withGenericBoardGameReducer(reducer), initialState)
@@ -27,12 +24,12 @@ export const useBoardGameNetwork = <State extends GenericBoardGameState, Action 
   let [hideDeck, setHideDeck] = useState(myLocals.length > 0)
   const [renderedDeckId, setRenderedDeckId] = useState(myPlayerId)
   const prevTurn = useRef(-1)
-  if (state.turn !== prevTurn.current) {
+  if (state.turn !== prevTurn.current && (state.turn === myPlayerId || myLocals.includes(state.players[state.turn]))) {
     if (myLocals.length > 0) {
       hideDeck = true
       setHideDeck(true)
-      setRenderedDeckId(state.turn)
     }
+    setRenderedDeckId(state.turn)
     prevTurn.current = state.turn
   }
   const handleError = (e: Error): void => {
@@ -58,6 +55,8 @@ export const useBoardGameNetwork = <State extends GenericBoardGameState, Action 
     setHideDeck,
     error,
     setError,
-    renderedDeckId
+    renderedDeckId,
+    revealDeck: () => setHideDeck(false),
+    resetError: () => setError('')
   }
 }
