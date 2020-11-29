@@ -2,7 +2,7 @@ import { NetworkAction, NetworkReducer } from 'smnet'
 import { GenericBoardGameState } from './GenericBoardGameState'
 import { GameContextInterface, useGameNetwork } from '../Generic/useGameNetwork'
 import { withGenericBoardGameReducer } from './withGenericBoardGameReducer'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export interface BoardGameContextInterface<State extends GenericBoardGameState, Action extends NetworkAction> extends GameContextInterface<State, Action> {
   hideDeck: boolean
@@ -23,14 +23,15 @@ export const useBoardGameNetwork = <State extends GenericBoardGameState, Action 
   const [error, setError] = useState('')
   let [hideDeck, setHideDeck] = useState(myLocals.length > 0)
   const [renderedDeckId, setRenderedDeckId] = useState(myPlayerId)
-  const prevTurn = useRef(-1)
-  if (state.turn !== prevTurn.current && (state.turn === myPlayerId || myLocals.includes(state.players[state.turn]))) {
+  const [prevTurn, setPrevTurn] = useState<undefined|number>(undefined)
+
+  if (state.turn !== prevTurn && (state.turn === myPlayerId || myLocals.includes(state.players[state.turn]))) {
     if (myLocals.length > 0) {
       hideDeck = true
       setHideDeck(true)
     }
     setRenderedDeckId(state.turn)
-    prevTurn.current = state.turn
+    setPrevTurn(state.turn)
   }
   const handleError = (e: Error): void => {
     setError(e.message)
