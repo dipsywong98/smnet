@@ -3,8 +3,11 @@ import { Button, Grid, Paper, TextField, Typography } from '@material-ui/core'
 import { getRandomName } from './getRandomName'
 import { Alert } from '@material-ui/lab'
 import { Loading } from './Loading'
+import { HomeI18n } from './i18n/types'
+import { defaultI18n } from './i18n'
+import { i18nSub } from './i18n/i18nSub'
 
-export const Home: FunctionComponent<{ connect: (name: string, room: string) => Promise<void>, connecting: boolean, gameName: string }> = ({ connect, connecting, gameName }) => {
+export const Home: FunctionComponent<{ connect: (name: string, room: string) => Promise<void>, connecting: boolean, gameName?: string, i18n?: HomeI18n }> = ({ connect, connecting, gameName , i18n = defaultI18n }) => {
   const [name, setName] = useState(getRandomName())
   const [room, setRoom] = useState('')
   const [error, setError] = useState('')
@@ -13,13 +16,13 @@ export const Home: FunctionComponent<{ connect: (name: string, room: string) => 
     <Paper elevation={3} style={{ padding: '32px 64px' }}>
       <Grid container justify='flex-end' direction='column' spacing={3}>
         <Grid item>
-          <Typography variant="h5">Welcome to {gameName}</Typography>
+          <Typography variant="h5">{gameName !== undefined ? (i18nSub(i18n.welcomeTo$gameName ?? i18n.welcome ?? 'Welcome to {{}}', {gameName})) : i18n.welcome}</Typography>
         </Grid>
         <Grid item>
-          <TextField label='Your Name' value={name} onChange={({ target: { value } }) => setName(value)} fullWidth/>
+          <TextField label={i18n.yourName} value={name} onChange={({ target: { value } }) => setName(value)} fullWidth/>
         </Grid>
         <Grid item>
-          <TextField label='Room Code' value={room} onChange={({ target: { value } }) => setRoom(value)} fullWidth/>
+          <TextField label={i18n.roomCode} value={room} onChange={({ target: { value } }) => setRoom(value)} fullWidth/>
         </Grid>
         {error !== '' && <Alert severity='error'>{error}</Alert>}
         <Grid item container justify='flex-end'>
@@ -29,7 +32,7 @@ export const Home: FunctionComponent<{ connect: (name: string, room: string) => 
               variant='contained'
               disabled={name === '' || room === '' || connecting}
               onClick={join}>
-              join
+              {i18n.join}
             </Button>
           </Loading>
         </Grid>

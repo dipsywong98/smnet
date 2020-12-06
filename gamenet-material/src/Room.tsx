@@ -26,8 +26,11 @@ import { PersonAdd } from './PersonAdd'
 import Alert from '@material-ui/lab/Alert'
 import { getRandomName } from './getRandomName'
 import { Loading } from './Loading'
+import { RoomI18n } from './i18n/types'
+import { defaultI18n } from './i18n'
+import { i18nSub } from './i18n/i18nSub'
 
-export const Room = <S extends GenericBoardGameState, A extends GenericGameAction>({ room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType, dispatching }: PropsWithChildren<BoardGameContextInterface<S, A>> ) => {
+export const Room = <S extends GenericBoardGameState, A extends GenericGameAction> ({ room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType, dispatching, i18n = defaultI18n }: PropsWithChildren<BoardGameContextInterface<S, A>> & { i18n?: RoomI18n }) => {
   const [error, setError] = useState('')
   const [name, setName] = useState('')
   const [creatingLocal, setCreatingLocal] = useState<boolean | undefined>(undefined)
@@ -57,29 +60,29 @@ export const Room = <S extends GenericBoardGameState, A extends GenericGameActio
   }
   const getIcon = (peerId: string, name: string): React.ReactNode => {
     if (peerId in state.spectators) {
-      return <Grid item title='spectator'>
+      return <Grid item title={i18n.spectator}>
         <Visibility/>
       </Grid>
     } else if (state.networkName === peerId) {
-      return <Grid item title='host'>
+      return <Grid item title={i18n.host}>
         <Crown/>
       </Grid>
     } else if (playerType(name) === PlayerType.NORMAL) {
-      if(state.ready[peerId]) {
-        return <Grid item title='player ready'>
+      if (state.ready[peerId]) {
+        return <Grid item title={i18n.playerReady}>
           <AccountCheck/>
         </Grid>
-      }else{
-        return <Grid item title='player not ready'>
+      } else {
+        return <Grid item title={i18n.playerNotReady}>
           <Person/>
         </Grid>
       }
     } else if (playerType(name) === PlayerType.LOCAL) {
-      return <Grid item title='hot seat player'>
+      return <Grid item title={i18n.hotSeatPlayer}>
         <PersonOutline/>
       </Grid>
     } else if (playerType(name) === PlayerType.AI) {
-      return <Grid item title='AI player'>
+      return <Grid item title={i18n.aiPlayer}>
         <Robot/>
       </Grid>
     }
@@ -87,18 +90,18 @@ export const Room = <S extends GenericBoardGameState, A extends GenericGameActio
 
   const renderHintText = (peerId: string, name: string) => {
     if (peerId === state.networkName) {
-      return `${name} is the host`
-    }else if (peerId in state.spectators) {
-      return `${name} is a spectator`
+      return i18nSub(i18n.$nameIsHost, { name })
+    } else if (peerId in state.spectators) {
+      return i18nSub(i18n.$nameIsSpectator, { name })
     } else if (peerId in state.localPlayers) {
-      return `${name} is a local player of ${state.members[state.localPlayers[peerId]]}`
+      return i18nSub(i18n.$nameIsLocalPlayerOf$owner, { name, owner: state.members[state.localPlayers[peerId]] })
     } else if (peerId in state.aiPlayers) {
-      return `${name} is an ai player of ${state.members[state.aiPlayers[peerId]]}`
+      return i18nSub(i18n.$nameIsAiPlayerOf$owner, { name, owner: state.members[state.aiPlayers[peerId]] })
     } else {
       if (state.ready[peerId]) {
-        return `${name} is not ready yet`
+        return i18nSub(i18n.$nameIsNotReadyYet, { name })
       } else {
-        return `${name} is ready`
+        return i18nSub(i18n.$nameIsReady, { name })
       }
     }
   }
@@ -107,18 +110,18 @@ export const Room = <S extends GenericBoardGameState, A extends GenericGameActio
     <Paper elevation={3} style={{ padding: '32px 64px', width: '400px' }}>
       <Grid container justify='flex-end' direction='column' spacing={3}>
         <Grid item>
-          <Typography variant="h5">Room: {room}</Typography>
+          <Typography variant="h5">{i18n.room}: {room}</Typography>
         </Grid>
         <Grid item>
           <Grid container justify='space-between' alignItems='flex-end'>
             <Grid item>
-              <Typography variant="h6">Players</Typography>
+              <Typography variant="h6">{i18n.players}</Typography>
             </Grid>
             <Grid item>
-              <IconButton size='medium' title='Add Local Hot Seat player' onClick={() => setCreatingLocal(true)}>
+              <IconButton size='medium' title={i18n.addHotSeatPlayer} onClick={() => setCreatingLocal(true)}>
                 <PersonAdd/>
               </IconButton>
-              <IconButton size='medium' title='Add AI Player' onClick={handleAddAiClick}>
+              <IconButton size='medium' title={i18n.addAiPlayer} onClick={handleAddAiClick}>
                 <RobotAdd/>
               </IconButton>
             </Grid>
@@ -156,19 +159,21 @@ export const Room = <S extends GenericBoardGameState, A extends GenericGameActio
         {error !== '' && <Alert severity='error'>{error}</Alert>}
         <Grid item container justify='flex-end' spacing={1}>
           <Grid item>
-            <Button variant='contained' color='secondary' onClick={leave}>leave</Button>
+            <Button variant='contained' color='secondary' onClick={leave}>{i18n.leave}</Button>
           </Grid>
           <Grid item>
             <Loading loading={dispatching}>
               {isAdmin
-                ? <Button variant='contained' color='primary' disabled={dispatching} onClick={handleStartClick}>start</Button>
-                : <Button variant='contained' color='primary' disabled={dispatching} onClick={handleReadyClick}>{state.ready[myId ?? ''] ? 'unready' : 'ready'}</Button>}
+                ? <Button variant='contained' color='primary' disabled={dispatching}
+                          onClick={handleStartClick}>{i18n.start}</Button>
+                : <Button variant='contained' color='primary' disabled={dispatching}
+                          onClick={handleReadyClick}>{state.ready[myId ?? ''] ? i18n.unready : i18n.ready}</Button>}
             </Loading>
           </Grid>
         </Grid>
       </Grid>
       <Dialog open={creatingLocal !== undefined} onClose={handleCloseClick} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Name for new {creatingLocal === true ? 'local' : 'AI'} player</DialogTitle>
+        <DialogTitle id="form-dialog-title">{i18n.nameForNewHotSeatPlayer}</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -181,10 +186,10 @@ export const Room = <S extends GenericBoardGameState, A extends GenericGameActio
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseClick} color="primary">
-            Cancel
+            {i18n.cancel}
           </Button>
           <Button onClick={createLocalOrAI} color="primary">
-            Create
+            {i18n.create}
           </Button>
         </DialogActions>
       </Dialog>

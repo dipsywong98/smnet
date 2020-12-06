@@ -1,0 +1,33 @@
+import { GamenetI18n } from './types'
+
+export const zh: GamenetI18n = {
+  $nameIsAiPlayerOf$owner: '{{name}}是{{owner}}的電腦玩家',
+  $nameIsHost: '{{name}}是主持',
+  $nameIsLocalPlayerOf$owner: '{{name}}是{{owner}}的本地玩家',
+  $nameIsReady: '{{name}}準備好了',
+  $nameIsSpectator: '{{name}}是觀眾',
+  $nameIsNotReadyYet: '{{name}}未準備好',
+  addAiPlayer: '新增電腦玩家',
+  addHotSeatPlayer: '新增本地玩家',
+  aiPlayer: '電腦玩家',
+  cancel: '取消',
+  create: '新增',
+  host: '主持',
+  hotSeatPlayer: '本地玩家',
+  join: '加入',
+  leave: '離開',
+  name: '名稱',
+  nameForNewHotSeatPlayer: '新本地玩家的名稱',
+  playerNotReady: '玩家未準備',
+  playerReady: '玩家準備好了',
+  players: '玩家',
+  ready: '準備',
+  room: '房間',
+  roomCode: '房間編號',
+  spectator: '觀眾',
+  start: '開始',
+  welcome: '歡迎',
+  welcomeTo$gameName: '歡迎遊玩{{gameName}}',
+  unready: '取消準備',
+  yourName: '你的名字'
+}

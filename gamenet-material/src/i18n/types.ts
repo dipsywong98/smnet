@@ -1,0 +1,36 @@
+export interface HomeI18n {
+  welcome?: string,
+  welcomeTo$gameName?: string,
+  join: string,
+  yourName: string,
+  roomCode: string
+}
+
+export interface RoomI18n {
+  room: string
+  players: string
+  leave: string
+  start: string
+  host: string
+  nameForNewHotSeatPlayer: string
+  cancel: string
+  create: string
+  name: string
+  ready: string
+  hotSeatPlayer: string
+  aiPlayer: string
+  addHotSeatPlayer: string
+  addAiPlayer: string
+  spectator: string
+  playerReady: string
+  playerNotReady: string
+  unready: string
+  $nameIsHost: string
+  $nameIsSpectator: string
+  $nameIsLocalPlayerOf$owner: string
+  $nameIsAiPlayerOf$owner: string
+  $nameIsNotReadyYet: string
+  $nameIsReady: string
+}
+
+export type GamenetI18n = HomeI18n & RoomI18n
