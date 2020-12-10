@@ -3,7 +3,8 @@ export interface HomeI18n {
   welcomeTo$gameName?: string,
   join: string,
   yourName: string,
-  roomCode: string
+  roomCode: string,
+  info: string
 }
 
 export interface RoomI18n {
@@ -33,4 +34,8 @@ export interface RoomI18n {
   $nameIsReady: string
 }
 
-export type GamenetI18n = HomeI18n & RoomI18n
+interface CommonI18n {
+  langName: string
+}
+
+export type GamenetI18n<T extends Record<string, unknown> = {}> = HomeI18n & RoomI18n & CommonI18n & T

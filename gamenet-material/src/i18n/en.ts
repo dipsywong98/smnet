@@ -1,6 +1,7 @@
 import { GamenetI18n } from './types'
 
 export const en: GamenetI18n = {
+  langName: 'English',
   $nameIsAiPlayerOf$owner: '{{name}} is AI player of {{owner}}',
   $nameIsHost: '{{name}} is the host',
   $nameIsLocalPlayerOf$owner: '{{name}} is local player Of {{owner}}',
@@ -14,6 +15,7 @@ export const en: GamenetI18n = {
   create: 'Create',
   host: 'Host',
   hotSeatPlayer: 'Hot Seat Player',
+  info: 'Info',
   join: 'Join',
   leave: 'Leave',
   name: 'Name',

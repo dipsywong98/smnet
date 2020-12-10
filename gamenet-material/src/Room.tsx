@@ -26,11 +26,13 @@ import { PersonAdd } from './PersonAdd'
 import Alert from '@material-ui/lab/Alert'
 import { getRandomName } from './getRandomName'
 import { Loading } from './Loading'
-import { RoomI18n } from './i18n/types'
-import { defaultI18n } from './i18n'
-import { i18nSub } from './i18n/i18nSub'
+import { i18nSub, RoomI18n, useGamenetI18n } from './i18n'
 
-export const Room = <S extends GenericBoardGameState, A extends GenericGameAction> ({ room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType, dispatching, i18n = defaultI18n }: PropsWithChildren<BoardGameContextInterface<S, A>> & { i18n?: RoomI18n }) => {
+export const Room = <S extends GenericBoardGameState, A extends GenericGameAction> (
+  {
+    room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType, dispatching, i18n: i18n_
+  }: PropsWithChildren<BoardGameContextInterface<S, A>> & { i18n?: Partial<RoomI18n> }) => {
+  const { i18n } = useGamenetI18n(i18n_)
   const [error, setError] = useState('')
   const [name, setName] = useState('')
   const [creatingLocal, setCreatingLocal] = useState<boolean | undefined>(undefined)

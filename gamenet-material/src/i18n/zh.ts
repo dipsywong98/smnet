@@ -1,6 +1,7 @@
 import { GamenetI18n } from './types'
 
 export const zh: GamenetI18n = {
+  langName: '中文',
   $nameIsAiPlayerOf$owner: '{{name}}是{{owner}}的電腦玩家',
   $nameIsHost: '{{name}}是主持',
   $nameIsLocalPlayerOf$owner: '{{name}}是{{owner}}的本地玩家',
@@ -14,6 +15,7 @@ export const zh: GamenetI18n = {
   create: '新增',
   host: '主持',
   hotSeatPlayer: '本地玩家',
+  info: '資訊',
   join: '加入',
   leave: '離開',
   name: '名稱',
