@@ -1,6 +1,6 @@
 {
   "name": "gamenet-material",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "",
   "keywords": [],
   "main": "dist/index.js",
@@ -85,6 +85,5 @@
     "smnet": "^0.1.0",
     "unique-names-generator": "^4.3.1",
     "uuid": "^8.3.1"
-  },
-  "dependencies": {}
+  }
 }
