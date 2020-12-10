@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { useGamenetI18n } from 'gamenet-material'
 import { IconButton, Menu, MenuItem } from '@material-ui/core'
 import { Language } from '@material-ui/icons'
+import { useGamenetI18n } from './i18n'
 
 export const LanguageButton = () => {
   const { language, setLanguage, languages } = useGamenetI18n()
