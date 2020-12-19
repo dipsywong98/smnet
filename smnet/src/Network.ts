@@ -190,14 +190,16 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
     if (this.peer === undefined) return
     const conn = this.peer.connect(name)
     this.setUpConnection(conn)
-    await new Promise((resolve, reject) => {
-      conn.on('open', () => {
-        resolve()
+    if(!conn.open) {
+      await new Promise((resolve, reject) => {
+        conn.on('open', () => {
+          resolve()
+        })
+        conn.on('error', err => {
+          reject(err)
+        })
       })
-      conn.on('error', err => {
-        reject(err)
-      })
-    })
+    }
     logger.info('opened connection with host')
     this.dataStream.registerConnection(conn)
     this.networkName = name

@@ -9,7 +9,7 @@ const Poker99Context = createContext<BoardGameContextInterface<Poker99State, Pok
 
 export const withPoker99Network = (Component: FunctionComponent): FunctionComponent => {
   const WithGameNetwork: FunctionComponent = props => {
-    const network = useBoardGameNetwork(Poker99Reducer, new Poker99State(), aiAction)
+    const network = useBoardGameNetwork(Poker99Reducer, new Poker99State(), aiAction, 'gamenet-demo')
     return (
       <Poker99Context.Provider value={network}>
         <Component {...props} />

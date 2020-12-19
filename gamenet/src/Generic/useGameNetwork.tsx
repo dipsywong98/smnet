@@ -3,6 +3,7 @@ import { withGenericGameReducer } from './withGenericGameReducer'
 import { GenericGameState, PlayerType } from './GenericGameState'
 import { GameActionTypes } from './GenericGameAction'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { extractNamespacedRoom, getNamespacedRoom } from '../getNamespacedRoom'
 
 export interface GameContextInterface<State, Action> {
   connect: (name: string, room: string) => Promise<void>
@@ -27,6 +28,8 @@ export interface GameContextInterface<State, Action> {
   myAis: string[] // array of names
   getPeerId: (playerId: number) => string
   dispatchAs: (playerId: number, action: Action) => Promise<void>
+  namespace?: string
+  namespacedRoom?: string
 }
 
 export enum GameAppState {
@@ -41,7 +44,7 @@ export interface GameNetworkProps<State extends GenericGameState, Action extends
   initialState: State
 }
 
-export const useGameNetwork = <State extends GenericGameState, Action extends NetworkAction> (reducer: NetworkReducer<State, Action>, initialState: State): GameContextInterface<State, Action> => {
+export const useGameNetwork = <State extends GenericGameState, Action extends NetworkAction> (reducer: NetworkReducer<State, Action>, initialState: State, namespace?: string): GameContextInterface<State, Action> => {
   const [gameAppState, setGameAppState] = useState(GameAppState.HOME)
   const network = useNetwork(withGenericGameReducer(reducer), initialState)
   const state = network.state as State
@@ -120,11 +123,12 @@ export const useGameNetwork = <State extends GenericGameState, Action extends Ne
   }
   const connect = async (name: string, room: string): Promise<void> => {
     try {
-      logger.info('connecting', room)
-      await network.join(room)
+      const namespacedRoom = getNamespacedRoom(room, namespace)
+      logger.info('connecting', namespacedRoom)
+      await network.join(namespacedRoom)
       logger.info('entering with name', name)
       await rename(name)
-      logger.info('connected', room)
+      logger.info('connected', namespacedRoom)
     } catch (e) {
       logger.error(e)
       await leave()
@@ -162,7 +166,6 @@ export const useGameNetwork = <State extends GenericGameState, Action extends Ne
     dispatching: network.dispatching,
     gameAppState,
     state,
-    room: network.networkName,
     leave,
     isAdmin: network.isAdmin,
     myId,
@@ -177,6 +180,7 @@ export const useGameNetwork = <State extends GenericGameState, Action extends Ne
     myLocals,
     myAis,
     getPeerId,
-    dispatchAs
+    dispatchAs,
+    ...extractNamespacedRoom(network.networkName)
   }
 }

@@ -16,8 +16,8 @@ export interface BoardGameContextInterface<State extends GenericBoardGameState, 
 
 type AiAction<State extends GenericBoardGameState, Action extends NetworkAction> = (state: State, turn: number) => Action
 
-export const useBoardGameNetwork = <State extends GenericBoardGameState, Action extends NetworkAction> (reducer: NetworkReducer<State, Action>, initialState: State, aiAction?: AiAction<State, Action>): BoardGameContextInterface<State, Action> => {
-  const network = useGameNetwork(withGenericBoardGameReducer(reducer), initialState)
+export const useBoardGameNetwork = <State extends GenericBoardGameState, Action extends NetworkAction> (reducer: NetworkReducer<State, Action>, initialState: State, aiAction?: AiAction<State, Action>, namespace?: string): BoardGameContextInterface<State, Action> => {
+  const network = useGameNetwork(withGenericBoardGameReducer(reducer), initialState, namespace)
   const { myLocals, myPlayerId, myAis, dispatchAs } = network
   const state = network.state as State
   const [error, setError] = useState('')
