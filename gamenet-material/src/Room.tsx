@@ -1,5 +1,5 @@
-import React, { PropsWithChildren, useState } from 'react'
-import { BoardGameContextInterface, GenericBoardGameState, GenericGameAction, PlayerType } from 'gamenet'
+import React, { PropsWithChildren, useEffect, useState } from 'react'
+import { BoardGameContextInterface, GenericBoardGameState, GenericGameAction, PlayerType, useLobby } from 'gamenet'
 import {
   Button,
   Dialog,
@@ -39,7 +39,17 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
   const [error, setError] = useState('')
   const [name, setName] = useState('')
   const [creatingLocal, setCreatingLocal] = useState<boolean | undefined>(undefined)
+  const lobby = useLobby()
   const theme = useTheme()
+  useEffect(() => {
+    console.log(lobby,room,myId?.includes(room ?? 'aaaaa'),Object.keys(state.members).length !== Object.keys(lobby?.rooms.find(r => r.roomNetworkName === myId)?.members ?? {}).length)
+    if(lobby && room && myId?.includes(room) && Object.keys(state.members).length !== Object.keys(lobby.rooms.find(r => r.roomNetworkName === myId)?.members ?? {}).length) {
+      lobby.updateRoom({
+        roomNetworkName: myId,
+        members: state.members
+      }).catch(console.error)
+    }
+  }, [lobby, myId, room, state.members])
   const handleStartClick = async (): Promise<void> => {
     setError('')
     await start().catch((e: Error) => setError(e.message))
