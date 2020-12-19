@@ -1,6 +1,6 @@
 {
   "name": "example",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "private": true,
   "homepage": "https://dipsywong98.github.io/smnet",
   "dependencies": {
@@ -17,7 +17,7 @@
     "checksum": "^0.1.1",
     "clone-deep": "^4.0.1",
     "gamenet": "^0.2.7",
-    "gamenet-material": "^0.2.10",
+    "gamenet-material": "^0.2.11",
     "mdi-material-ui": "^6.20.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
