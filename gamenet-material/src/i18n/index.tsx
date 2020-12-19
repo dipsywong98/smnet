@@ -61,7 +61,8 @@ export function GamenetI18nProvider <T extends Record<string, unknown>> (
   }, [])
   const availableLangs = Object.keys(mergedI18ns)
   const [language, setLanguage_] = useState<string>(() => {
-    return localStorage.getItem('language') ?? getDefaultLanguage(availableLangs)
+    const lang = localStorage.getItem('language') ?? getDefaultLanguage(availableLangs)
+    return !availableLangs.includes(lang) ? getDefaultLanguage(availableLangs) : lang
   })
   const setLanguage = (lang: string) => {
     if(availableLangs.includes(lang)) {
