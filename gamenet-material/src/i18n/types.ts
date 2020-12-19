@@ -32,6 +32,7 @@ export interface RoomI18n {
   $nameIsAiPlayerOf$owner: string
   $nameIsNotReadyYet: string
   $nameIsReady: string
+  showInLobby: string
 }
 
 interface CommonI18n {

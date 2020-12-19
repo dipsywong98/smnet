@@ -8,6 +8,7 @@ import { LobbyRoomInfo } from './LobbyRoomInfo'
 export interface LobbyContext {
   rooms: LobbyRoomInfo[]
   updateRoom: (roomInfo: Omit<LobbyRoomInfo, 'peerId'>) => Promise<void>
+  removeRoom: (roomNetworkName: string) => Promise<void>
 }
 
 const LobbyContext = createContext<LobbyContext|null>(null)
@@ -34,7 +35,21 @@ export const LobbyProvider: FunctionComponent<{lobbyName: string}> = ({lobbyName
     }
   }
 
-  return <LobbyContext.Provider value={{ rooms: lobbyNetwork.state.rooms, updateRoom }}>
+  const removeRoom = async (roomNetworkName: string): Promise<void> => {
+    if(!updating) {
+      setUpdating(true)
+      await lobbyNetwork.dispatch({
+        type: LobbyActionTypes.REMOVE_ROOM,
+          payload: {
+          roomNetworkName
+          }
+      }).finally(() => {
+        setUpdating(false)
+      })
+    }
+  }
+
+  return <LobbyContext.Provider value={{ rooms: lobbyNetwork.state.rooms, updateRoom, removeRoom }}>
     {children}
   </LobbyContext.Provider>
 }

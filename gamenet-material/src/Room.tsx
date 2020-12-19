@@ -1,12 +1,21 @@
 import React, { PropsWithChildren, useEffect, useState } from 'react'
-import { BoardGameContextInterface, GenericBoardGameState, GenericGameAction, PlayerType, useLobby } from 'gamenet'
+import {
+  BoardGameContextInterface,
+  GenericBoardGameState,
+  GenericGameAction,
+  LobbyRoomInfo,
+  PlayerType,
+  useLobby
+} from 'gamenet'
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
+  FormControlLabel,
   Grid,
   IconButton,
   isWidthUp,
@@ -33,23 +42,42 @@ import { Breakpoint } from '@material-ui/core/styles/createBreakpoints'
 
 export const Room = withWidth()(<S extends GenericBoardGameState, A extends GenericGameAction> (
   {
-    room, state, leave, isAdmin, myId, kick, ready, start, addAi, addLocal, playerType, dispatching, i18n: i18n_, width
-  }: PropsWithChildren<BoardGameContextInterface<S, A>> & { i18n?: Partial<RoomI18n>, width?: Breakpoint }) => {
+    room,
+    state,
+    leave,
+    isAdmin,
+    myId,
+    kick,
+    ready,
+    start,
+    addAi,
+    addLocal,
+    playerType,
+    dispatching,
+    i18n: i18n_,
+    width,
+    defaultShowInLobby,
+    setShowInLobby
+  }: PropsWithChildren<BoardGameContextInterface<S, A>> & { i18n?: Partial<RoomI18n>, width?: Breakpoint, defaultShowInLobby?: boolean }) => {
   const { i18n } = useGamenetI18n(i18n_)
   const [error, setError] = useState('')
   const [name, setName] = useState('')
   const [creatingLocal, setCreatingLocal] = useState<boolean | undefined>(undefined)
   const lobby = useLobby()
   const theme = useTheme()
+  const showInLobby = state.showInLobby ?? defaultShowInLobby ?? true
   useEffect(() => {
-    console.log(lobby,room,myId?.includes(room ?? 'aaaaa'),Object.keys(state.members).length !== Object.keys(lobby?.rooms.find(r => r.roomNetworkName === myId)?.members ?? {}).length)
-    if(lobby && room && myId?.includes(room) && Object.keys(state.members).length !== Object.keys(lobby.rooms.find(r => r.roomNetworkName === myId)?.members ?? {}).length) {
+    const membersChanged = JSON.stringify(state.members) !== JSON.stringify(lobby?.rooms.find((r: LobbyRoomInfo) => r.roomNetworkName === myId)?.members ?? {})
+    if (showInLobby && lobby && room && myId?.includes(room) && membersChanged) {
       lobby.updateRoom({
         roomNetworkName: myId,
         members: state.members
-      }).catch(console.error)
+      }).catch((e: Error) => setError(e.message))
     }
-  }, [lobby, myId, room, state.members])
+    if (!showInLobby && lobby && room && myId?.includes(room) && lobby?.rooms.find((r: LobbyRoomInfo) => r.roomNetworkName === myId)) {
+      lobby.removeRoom(myId).catch((e: Error) => setError(e.message))
+    }
+  }, [showInLobby, lobby, myId, room, state.members])
   const handleStartClick = async (): Promise<void> => {
     setError('')
     await start().catch((e: Error) => setError(e.message))
@@ -189,25 +217,43 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
       </Grid>
       <Divider/>
       {error !== '' && <Alert severity='error'>{error}</Alert>}
-      <Grid item container justify='flex-end' spacing={1}
+      <Grid item container justify='space-between' spacing={1}
             style={{ padding: `16px ${padding} 16px ${padding}` }}>
         <Grid item>
-          <Button variant='contained' color='secondary' onClick={handleLeaveClick}>{i18n.leave}</Button>
+          <FormControlLabel
+            control={
+              <Checkbox
+                disabled={!isAdmin}
+                checked={showInLobby}
+                onChange={() => setShowInLobby(!showInLobby)}
+                name="showInLobby"
+                color="primary"
+              />
+            }
+            label={i18n.showInLobby}
+          />
         </Grid>
         <Grid item>
-          <Loading loading={dispatching}>
-            {isAdmin
-              ? <Button
-                variant='contained' color='primary' disabled={dispatching}
-                onClick={handleStartClick}>
-                {i18n.start}
-              </Button>
-              : <Button
-                variant='contained' color='primary' disabled={dispatching}
-                onClick={handleReadyClick}>
-                {state.ready[myId ?? ''] ? i18n.unready : i18n.ready}
-              </Button>}
-          </Loading>
+          <Grid container spacing={1}>
+            <Grid item>
+              <Button variant='contained' color='secondary' onClick={handleLeaveClick}>{i18n.leave}</Button>
+            </Grid>
+            <Grid item>
+              <Loading loading={dispatching}>
+                {isAdmin
+                  ? <Button
+                    variant='contained' color='primary' disabled={dispatching}
+                    onClick={handleStartClick}>
+                    {i18n.start}
+                  </Button>
+                  : <Button
+                    variant='contained' color='primary' disabled={dispatching}
+                    onClick={handleReadyClick}>
+                    {state.ready[myId ?? ''] ? i18n.unready : i18n.ready}
+                  </Button>}
+              </Loading>
+            </Grid>
+          </Grid>
         </Grid>
       </Grid>
       <Dialog open={creatingLocal !== undefined} onClose={handleCloseClick} aria-labelledby="form-dialog-title">

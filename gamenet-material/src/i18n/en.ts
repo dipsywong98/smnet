@@ -31,5 +31,6 @@ export const en: GamenetI18n = {
   welcome: 'Welcome',
   welcomeTo$gameName: 'Welcome to {{gameName}}',
   unready: 'unready',
-  yourName: 'Your Name'
+  yourName: 'Your Name',
+  showInLobby: 'Show in lobby'
 }
