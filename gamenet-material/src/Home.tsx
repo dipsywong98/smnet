@@ -1,13 +1,14 @@
-import React, { FunctionComponent, ReactNode, useState } from 'react'
+import React, { FunctionComponent, ReactNode, useEffect, useState } from 'react'
 import { Button, Dialog, DialogActions, Grid, IconButton, Paper, TextField, Typography } from '@material-ui/core'
 import { getRandomName } from './getRandomName'
 import { Alert } from '@material-ui/lab'
 import { Loading } from './Loading'
 import { HomeI18n, i18nSub, useGamenetI18n } from './i18n'
 import { InfoRounded } from '@material-ui/icons'
+import { pushRoomCodeToHistory } from 'gamenet-material/src/pushRoomCodeToHistory'
 
 export const Home: FunctionComponent<{
-  connect: (name: string, room: string) => Promise<void>, connecting: boolean, gameName?: string, i18n?: Partial<HomeI18n>, children?: ReactNode
+  connect: (name: string, room: string) => Promise<void>, connecting: boolean, gameName: string, i18n?: Partial<HomeI18n>, children?: ReactNode
 }> = ({
         connect,
         connecting,
@@ -17,10 +18,25 @@ export const Home: FunctionComponent<{
       }) => {
   const { i18n } = useGamenetI18n(_i18n)
   const [name, setName] = useState(getRandomName())
-  const [room, setRoom] = useState('')
+  const [room, setRoom] = useState(window.location.hash.substring(2))
   const [error, setError] = useState('')
   const [openInfo, setOpenInfo] = useState(false)
-  const join = async (): Promise<void> => await connect(name, room).catch((error: Error) => setError(error.message))
+  const join = async (): Promise<void> => await connect(name, room)
+    .then(() => {
+      setError('')
+      pushRoomCodeToHistory(gameName, room)
+    })
+    .catch((error: Error) => setError(error.message))
+  useEffect(() => {
+    const listener = ({ state }: { state?: { roomCode: string } }): void => {
+      setRoom(state?.roomCode ?? '')
+    }
+    window.addEventListener('popstate', listener)
+    window.history.replaceState({ roomCode: window.location.hash.substring(2) }, gameName)
+    return () => {
+      window.removeEventListener('popstate', listener)
+    }
+  }, [])
   return (
     <Paper elevation={3} style={{ padding: '32px 64px' }}>
       <Grid container justify='flex-end' direction='column' spacing={3}>
