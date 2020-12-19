@@ -159,6 +159,8 @@ export const generalGameReducer: NetworkReducer<GenericGameState, GenericGameAct
       return withAddLocalPlayer(action.payload, peerId)(prevState)
     case GameActionTypes.REMOVE_LOCAL_AI:
       return withRemovePlayer(action.payload)(prevState)
+    case GameActionTypes.SET_SHOW_IN_LOBBY:
+      return {...prevState, showInLobby: action.payload}
     default:
       return prevState
   }

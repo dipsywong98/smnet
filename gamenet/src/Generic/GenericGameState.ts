@@ -40,5 +40,9 @@ export class GenericGameState implements NetworkState {
    * peerId in ready iff ready
    */
   ready: { [peerId: string]: true } = {}
+  /**
+   * whether should this room show in lobby, you should handle this yourself when using lobby
+   */
+  showInLobby: boolean | null = null
   started = false
 }

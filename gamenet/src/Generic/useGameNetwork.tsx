@@ -30,6 +30,7 @@ export interface GameContextInterface<State, Action> {
   dispatchAs: (playerId: number, action: Action) => Promise<void>
   namespace?: string
   namespacedRoom?: string
+  setShowInLobby: (flag: boolean) => Promise<void>
 }
 
 export enum GameAppState {
@@ -121,6 +122,12 @@ export const useGameNetwork = <State extends GenericGameState, Action extends Ne
       payload: name
     })
   }
+  const setShowInLobby = async (flag: boolean): Promise<void> => {
+    await network.dispatch({
+      type: GameActionTypes.SET_SHOW_IN_LOBBY,
+      payload: flag
+    })
+  }
   const connect = async (name: string, room: string): Promise<void> => {
     try {
       const namespacedRoom = getNamespacedRoom(room, namespace)
@@ -181,6 +188,7 @@ export const useGameNetwork = <State extends GenericGameState, Action extends Ne
     myAis,
     getPeerId,
     dispatchAs,
+    setShowInLobby,
     ...extractNamespacedRoom(network.networkName)
   }
 }

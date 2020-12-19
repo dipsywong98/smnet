@@ -24,6 +24,9 @@ export type GenericGameAction = ({
 } | {
   type: GameActionTypes.REMOVE_LOCAL_AI
   payload: string
+} | {
+  type: GameActionTypes.SET_SHOW_IN_LOBBY
+  payload: boolean
 }) & NetworkAction
 
 export enum GameActionTypes {
@@ -36,4 +39,5 @@ export enum GameActionTypes {
   ADD_AI = 'add-ai',
   ADD_LOCAL = 'add-local',
   REMOVE_LOCAL_AI = 'remove-local-ai',
+  SET_SHOW_IN_LOBBY = 'set-show-in-lobby'
 }
