@@ -57,8 +57,9 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
     i18n: i18n_,
     width,
     defaultShowInLobby,
-    setShowInLobby
-  }: PropsWithChildren<BoardGameContextInterface<S, A>> & { i18n?: Partial<RoomI18n>, width?: Breakpoint, defaultShowInLobby?: boolean }) => {
+    setShowInLobby,
+    roomUrlBuilder
+  }: PropsWithChildren<BoardGameContextInterface<S, A>> & { i18n?: Partial<RoomI18n>, width?: Breakpoint, defaultShowInLobby?: boolean, roomUrlBuilder?: (room: string, name: string) => string }) => {
   const { i18n } = useGamenetI18n(i18n_)
   const [error, setError] = useState('')
   const [name, setName] = useState('')
@@ -71,10 +72,11 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
     if (showInLobby && lobby && room && myId?.includes(room) && membersChanged) {
       lobby.updateRoom({
         roomNetworkName: myId,
-        members: state.members
+        members: state.members,
+        url: window.location.href
       }).catch((e: Error) => setError(e.message))
     }
-    if (!showInLobby && lobby && room && myId?.includes(room) && lobby?.rooms.find((r: LobbyRoomInfo) => r.roomNetworkName === myId)) {
+    if (!showInLobby && lobby && room && myId?.includes(room)) {
       lobby.removeRoom(myId).catch((e: Error) => setError(e.message))
     }
   }, [showInLobby, lobby, myId, room, state.members])
@@ -96,6 +98,9 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
   }
   const handleLeaveClick = () => {
     setError('')
+    if(room && myId?.includes(room)) {
+      lobby?.removeRoom(myId).catch((e: Error) => setError(e.message))
+    }
     leave()
   }
   const createLocalOrAI = async (): Promise<void> => {
@@ -107,6 +112,9 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
       }
     }
     handleCloseClick()
+  }
+  const handleKick = (id: string) => {
+    kick(id).then(() => setError('')).catch(e => setError(e.message))
   }
   const getIcon = (peerId: string, name: string): React.ReactNode => {
     if (peerId in state.spectators) {
@@ -206,7 +214,7 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
                 </ListItemText>
                 {((isAdmin || [PlayerType.LOCAL, PlayerType.AI].includes(playerType(name))) && id !== myId && id !== state.networkName) &&
                 <ListItemSecondaryAction>
-                  <IconButton edge="end" aria-label="delete" onClick={() => kick(id)} title='Kick'>
+                  <IconButton edge="end" aria-label="delete" onClick={() => handleKick(id)} title='Kick'>
                     <CancelOutlined color='error'/>
                   </IconButton>
                 </ListItemSecondaryAction>}

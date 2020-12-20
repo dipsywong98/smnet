@@ -4,7 +4,8 @@ export interface HomeI18n {
   join: string,
   yourName: string,
   roomCode: string,
-  info: string
+  info: string,
+  lobby: string
 }
 
 export interface RoomI18n {
@@ -37,6 +38,7 @@ export interface RoomI18n {
 
 interface CommonI18n {
   langName: string
+  game: string
 }
 
 export type GamenetI18n<T extends Record<string, unknown> = {}> = HomeI18n & RoomI18n & CommonI18n & T

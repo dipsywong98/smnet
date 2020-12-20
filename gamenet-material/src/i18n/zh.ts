@@ -32,5 +32,7 @@ export const zh: GamenetI18n = {
   welcomeTo$gameName: '歡迎遊玩{{gameName}}',
   unready: '取消準備',
   yourName: '你的名字',
-  showInLobby: '在大堂顯示'
+  showInLobby: '在大廳顯示',
+  lobby: '大廳',
+  game: '遊戲'
 }
