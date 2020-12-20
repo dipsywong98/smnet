@@ -57,6 +57,7 @@ const _Lobby: FunctionComponent<{ playerName: string, width?: Breakpoint }> = ({
           <TableCell>{namespace ?? i18n.unknown}</TableCell>
           <TableCell>{roomInfo.members[roomInfo.roomNetworkName] ?? i18n.unknown}</TableCell>
           <TableCell>{Object.keys(roomInfo.members).length}</TableCell>
+          <TableCell>{roomInfo.started ? i18n.started : i18n.waiting}</TableCell>
           <TableCell>
             <Button component='a' variant='contained' href={url} disabled={url === ''} size='small'>
               <PlayArrow fontSize='small'/>
@@ -78,8 +79,9 @@ const _Lobby: FunctionComponent<{ playerName: string, width?: Breakpoint }> = ({
                   <div><strong>{room}</strong></div>
                   <div>{i18n.game}:{namespace ?? i18n.unknown}</div>
                   <div>{i18n.host}:{roomInfo.members[roomInfo.roomNetworkName] ?? i18n.unknown}</div>
+                  <Grid item>{Object.keys(roomInfo.members).length}{i18n.players}</Grid>
                   <Grid container justify='space-between'>
-                    <Grid item>{Object.keys(roomInfo.members).length}{i18n.players}</Grid>
+                    <Grid item>{roomInfo.started ? i18n.started : i18n.waiting}</Grid>
                     <Grid item>
                       <Button component='a' variant='contained' href={url} disabled={url === ''} size='small'>
                         <PlayArrow fontSize='small'/>
@@ -104,6 +106,7 @@ const _Lobby: FunctionComponent<{ playerName: string, width?: Breakpoint }> = ({
                 <TableCell>{i18n.game}</TableCell>
                 <TableCell>{i18n.host}</TableCell>
                 <TableCell>{i18n.players}</TableCell>
+                <TableCell>{i18n.status}</TableCell>
                 <TableCell>{i18n.join}</TableCell>
               </TableRow>
             </TableHead>
@@ -116,7 +119,7 @@ const _Lobby: FunctionComponent<{ playerName: string, width?: Breakpoint }> = ({
               }</TableBody>
           </Table>
         </TableContainer>
-        : !loading && lobby ? lobby.rooms.length > 0 ? renderRoomsInCards(lobby.rooms) : i18n.noRooms : 'loading'
+        : !loading && lobby ? lobby.rooms.length > 0 ? renderRoomsInCards(lobby.rooms) : i18n.noRooms : ''
       }
     </Loading>
   )

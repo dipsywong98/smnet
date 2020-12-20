@@ -42,6 +42,9 @@ interface CommonI18n {
   unknown: string
   noRooms: string
   loading: string
+  status: string
+  started: string
+  waiting: string
 }
 
 export type GamenetI18n<T extends Record<string, unknown> = {}> = HomeI18n & RoomI18n & CommonI18n & T

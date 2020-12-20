@@ -37,5 +37,8 @@ export const zh: GamenetI18n = {
   game: '遊戲',
   unknown: '未知',
   noRooms: '沒有房間',
-  loading: '載入中...'
+  loading: '載入中...',
+  status: '狀態',
+  started: '遊戲中',
+  waiting: '等待中',
 }

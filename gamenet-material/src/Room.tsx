@@ -67,18 +67,21 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
   const theme = useTheme()
   const showInLobby = state.showInLobby ?? defaultShowInLobby ?? true
   useEffect(() => {
-    const membersChanged = JSON.stringify(state.members) !== JSON.stringify(lobby?.rooms.find((r: LobbyRoomInfo) => r.roomNetworkName === myId)?.members ?? {})
-    if (showInLobby && lobby && room && myId?.includes(room) && membersChanged) {
+    const find = lobby?.rooms.find((r: LobbyRoomInfo) => r.roomNetworkName === myId)
+    const membersChanged = JSON.stringify(state.members) !== JSON.stringify(find?.members ?? {})
+    const startedChange = state.started !== find?.started
+    if (showInLobby && lobby && room && myId?.includes(room) && (membersChanged || startedChange)) {
       lobby.updateRoom({
         roomNetworkName: myId,
         members: state.members,
-        url: window.location.href
+        url: window.location.href,
+        started: state.started
       }).catch((e: Error) => setError(e.message))
     }
     if (!showInLobby && lobby && room && myId?.includes(room)) {
       lobby.removeRoom(myId).catch((e: Error) => setError(e.message))
     }
-  }, [showInLobby, lobby, myId, room, state.members])
+  }, [showInLobby, lobby, myId, room, state.members, state.started])
   const handleStartClick = async (): Promise<void> => {
     setError('')
     await start().catch((e: Error) => setError(e.message))

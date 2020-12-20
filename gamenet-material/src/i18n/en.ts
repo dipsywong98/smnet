@@ -37,5 +37,8 @@ export const en: GamenetI18n = {
   game: 'Game',
   unknown: 'Unknown',
   noRooms: 'No Rooms',
-  loading: 'Loading...'
+  loading: 'Loading...',
+  status: 'Status',
+  started: 'Started',
+  waiting: 'Waiting'
 }
