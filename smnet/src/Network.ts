@@ -108,6 +108,8 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
 
   public async leave (): Promise<void> {
     if (this.peer !== undefined) {
+      const networkName = this.networkName
+      logger.info(`leaving network ${this.networkName}`)
       if (this.networkStrategy !== undefined) {
         this.networkStrategy.leaving = true
       }
@@ -118,6 +120,7 @@ export class Network<State extends NetworkState, Action extends NetworkAction> {
       this.networkName = undefined
       this.dataStream.reset()
       this.stateManager.reset()
+      logger.info(`left network ${networkName}`)
     }
   }
 

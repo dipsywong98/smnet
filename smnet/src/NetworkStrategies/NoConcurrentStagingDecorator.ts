@@ -22,10 +22,12 @@ export class NoConcurrentStagingDecorator<State extends NetworkState, Action ext
 
   private checkStagingState (errorMessage: string): void {
     if(this.failCount >= this.MAX_RESET) {
+      logger.error(`failed NoConcurrentStaging for ${this.MAX_RESET} times, reset the stagingState`)
       this.stagingState = undefined
     }
     if (this.stagingState !== undefined) {
       if(checksum(JSON.stringify(this.stagingState)) === checksum(JSON.stringify(this.network.state))) {
+        logger.debug('stagingState has already promoted actually, remove the stagingState')
         this.stagingState = undefined
       } else {
         logger.error(errorMessage, this.stagingState)
@@ -33,6 +35,7 @@ export class NoConcurrentStagingDecorator<State extends NetworkState, Action ext
         throw new NetworkBusyError()
       }
     } else {
+      logger.debug('successful check reset the failCount')
       this.failCount = 0
     }
   }
