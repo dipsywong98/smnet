@@ -57,9 +57,8 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
     i18n: i18n_,
     width,
     defaultShowInLobby,
-    setShowInLobby,
-    roomUrlBuilder
-  }: PropsWithChildren<BoardGameContextInterface<S, A>> & { i18n?: Partial<RoomI18n>, width?: Breakpoint, defaultShowInLobby?: boolean, roomUrlBuilder?: (room: string, name: string) => string }) => {
+    setShowInLobby
+  }: PropsWithChildren<BoardGameContextInterface<S, A>> & { i18n?: Partial<RoomI18n>, width?: Breakpoint, defaultShowInLobby?: boolean }) => {
   const { i18n } = useGamenetI18n(i18n_)
   const [error, setError] = useState('')
   const [name, setName] = useState('')
@@ -98,7 +97,7 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
   }
   const handleLeaveClick = () => {
     setError('')
-    if(room && myId?.includes(room)) {
+    if (room && myId?.includes(room)) {
       lobby?.removeRoom(myId).catch((e: Error) => setError(e.message))
     }
     leave()
@@ -228,7 +227,7 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
       <Grid item container justify='space-between' spacing={1}
             style={{ padding: `16px ${padding} 16px ${padding}` }}>
         <Grid item>
-          <FormControlLabel
+          {lobby && <FormControlLabel
             control={
               <Switch
                 disabled={!isAdmin}
@@ -240,6 +239,7 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
             }
             label={i18n.showInLobby}
           />
+          }
         </Grid>
         <Grid item>
           <Grid container spacing={1}>

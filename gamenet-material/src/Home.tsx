@@ -7,9 +7,11 @@ import {
   DialogTitle,
   Grid,
   IconButton,
+  isWidthUp,
   Paper,
   TextField,
-  Typography
+  Typography,
+  withWidth
 } from '@material-ui/core'
 import { Alert } from '@material-ui/lab'
 import { Loading } from './Loading'
@@ -18,15 +20,18 @@ import { InfoRounded } from '@material-ui/icons'
 import { pushRoomCodeToHistory } from 'gamenet-material/src/pushRoomCodeToHistory'
 import { Lobby } from './Lobby'
 import { getParams } from './urlHelper'
+import { useLobby } from 'gamenet'
+import { Breakpoint } from '@material-ui/core/styles/createBreakpoints'
 
-export const Home: FunctionComponent<{
-  connect: (name: string, room: string) => Promise<void>, connecting: boolean, gameName: string, i18n?: Partial<HomeI18n>, children?: ReactNode
+const _Home: FunctionComponent<{
+  connect: (name: string, room: string) => Promise<void>, connecting: boolean, gameName: string, i18n?: Partial<HomeI18n>, children?: ReactNode, width?: Breakpoint
 }> = ({
         connect,
         connecting,
         gameName,
         i18n: _i18n,
-        children
+        children,
+        width
       }) => {
   const urlParams = getParams()
   const { i18n } = useGamenetI18n(_i18n)
@@ -35,6 +40,7 @@ export const Home: FunctionComponent<{
   const [error, setError] = useState('')
   const [openInfo, setOpenInfo] = useState(false)
   const [showLobby, setShowLobby] = useState(false)
+  const lobby = useLobby()
   const join = async (): Promise<void> => await connect(name, room)
     .then(() => {
       localStorage.setItem('name', name)
@@ -53,13 +59,16 @@ export const Home: FunctionComponent<{
     }
   }, [])
   useEffect(() => {
-    if(urlParams.join) {
+    if (urlParams.join) {
       join().catch((error: Error) => setError(error.message))
     }
   }, [])
+  const padding = isWidthUp('sm', width!) ? '64px' : '16px'
   return (
-    <Paper elevation={3} style={{ padding: '32px 64px',
-      width: 'calc(min(500px, 95%))', boxSizing: 'border-box'}}>
+    <Paper elevation={3} style={{
+      padding: `32px ${padding}`,
+      width: 'calc(min(500px, 95%))', boxSizing: 'border-box'
+    }}>
       <Grid container justify='flex-end' direction='column' spacing={3}>
         <Grid item>
           <Typography
@@ -76,23 +85,23 @@ export const Home: FunctionComponent<{
           {children ? <IconButton onClick={() => setOpenInfo(true)} title={i18n.info}>
             <InfoRounded/>
           </IconButton> : <div/>}
-          <Grid item style={{display: 'flex'}}>
+          <Grid item style={{ display: 'flex' }}>
+            {lobby && <Button
+              style={{ marginRight: '8px' }}
+              color='secondary'
+              variant='contained'
+              onClick={() => setShowLobby(true)}>
+              {i18n.lobby}
+            </Button>}
+            <Loading loading={connecting}>
               <Button
-                style={{marginRight: '8px'}}
-                color='secondary'
+                color='primary'
                 variant='contained'
-                onClick={() => setShowLobby(true)}>
-                {i18n.lobby}
+                disabled={name === '' || room === '' || connecting}
+                onClick={join}>
+                {i18n.join}
               </Button>
-              <Loading loading={connecting}>
-                <Button
-                  color='primary'
-                  variant='contained'
-                  disabled={name === '' || room === '' || connecting}
-                  onClick={join}>
-                  {i18n.join}
-                </Button>
-              </Loading>
+            </Loading>
           </Grid>
         </Grid>
       </Grid>
@@ -106,19 +115,21 @@ export const Home: FunctionComponent<{
           </DialogActions>
         </Dialog>
       )}
-        <Dialog open={showLobby} onClose={() => setShowLobby(false)} aria-labelledby="form-dialog-title">
-          <DialogTitle>
-            {i18n.lobby}
-          </DialogTitle>
-          <DialogContent>
-            {showLobby && <Lobby playerName={name}/>}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowLobby(false)} color="primary">
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
+      <Dialog open={showLobby} onClose={() => setShowLobby(false)} aria-labelledby="form-dialog-title">
+        <DialogTitle>
+          {i18n.lobby}
+        </DialogTitle>
+        <DialogContent>
+          {showLobby && <Lobby playerName={name}/>}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowLobby(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   )
 }
+
+export const Home = withWidth()(_Home)
