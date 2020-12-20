@@ -16,6 +16,7 @@ export class StarHostStrategy<State extends NetworkState, Action extends Network
     this.stagingState = this.network.applyReducer(this.network.getState(), action)
     const cs = checksum(JSON.stringify(this.stagingState))
     if(cs === checksum(JSON.stringify(this.network.getState()))) {
+      this.stagingState = undefined
       logger.debug('no state change after reduce, short circuited')
       return
     }
