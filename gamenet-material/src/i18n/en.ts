@@ -34,5 +34,8 @@ export const en: GamenetI18n = {
   yourName: 'Your Name',
   showInLobby: 'Show in lobby',
   lobby: 'Lobby',
-  game: 'Game'
+  game: 'Game',
+  unknown: 'Unknown',
+  noRooms: 'No Rooms',
+  loading: 'Loading...'
 }

@@ -8,7 +8,7 @@ export const getParams = (): Record<string, string> => {
   return params
 }
 
-export const attachParams = (params: Record<string, string>) => {
-  const {origin, pathname} = window.location
+export const attachParams = (params: Record<string, string>, url?: string) => {
+  const {origin, pathname} = url === undefined ? window.location : new URL(url)
   return origin+pathname+'?'+Object.entries(params).map(pair => pair.join('=')).join('&')
 }

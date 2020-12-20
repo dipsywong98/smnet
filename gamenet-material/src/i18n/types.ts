@@ -39,6 +39,9 @@ export interface RoomI18n {
 interface CommonI18n {
   langName: string
   game: string
+  unknown: string
+  noRooms: string
+  loading: string
 }
 
 export type GamenetI18n<T extends Record<string, unknown> = {}> = HomeI18n & RoomI18n & CommonI18n & T

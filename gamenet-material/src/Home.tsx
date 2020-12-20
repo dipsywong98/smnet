@@ -11,7 +11,6 @@ import {
   TextField,
   Typography
 } from '@material-ui/core'
-import { getRandomName } from './getRandomName'
 import { Alert } from '@material-ui/lab'
 import { Loading } from './Loading'
 import { HomeI18n, i18nSub, useGamenetI18n } from './i18n'
@@ -31,7 +30,7 @@ export const Home: FunctionComponent<{
       }) => {
   const urlParams = getParams()
   const { i18n } = useGamenetI18n(_i18n)
-  const [name, setName] = useState(urlParams.name ?? localStorage.getItem('name') ?? getRandomName())
+  const [name, setName] = useState(urlParams.name ?? localStorage.getItem('name') ?? '')
   const [room, setRoom] = useState(urlParams.room ?? '')
   const [error, setError] = useState('')
   const [openInfo, setOpenInfo] = useState(false)
@@ -112,7 +111,7 @@ export const Home: FunctionComponent<{
             {i18n.lobby}
           </DialogTitle>
           <DialogContent>
-            {showLobby && <Lobby/>}
+            {showLobby && <Lobby playerName={name}/>}
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setShowLobby(false)} color="primary">

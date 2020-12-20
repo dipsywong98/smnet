@@ -9,7 +9,6 @@ import {
 } from 'gamenet'
 import {
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -25,6 +24,7 @@ import {
   ListItemSecondaryAction,
   ListItemText,
   Paper,
+  Switch,
   TextField,
   Typography,
   useTheme,
@@ -230,7 +230,7 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
         <Grid item>
           <FormControlLabel
             control={
-              <Checkbox
+              <Switch
                 disabled={!isAdmin}
                 checked={showInLobby}
                 onChange={() => setShowInLobby(!showInLobby)}

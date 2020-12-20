@@ -34,5 +34,8 @@ export const zh: GamenetI18n = {
   yourName: '你的名字',
   showInLobby: '在大廳顯示',
   lobby: '大廳',
-  game: '遊戲'
+  game: '遊戲',
+  unknown: '未知',
+  noRooms: '沒有房間',
+  loading: '載入中...'
 }
