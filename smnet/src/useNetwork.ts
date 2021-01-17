@@ -4,6 +4,7 @@ import { Network } from './Network'
 import { StateManager } from './StateManager'
 import { PeerFactory } from './PeerFactory'
 import { logger } from './Logger'
+import { usePeerFactory } from './useConfigurePeerFactory'
 
 export interface UseNetworkReturn<State extends NetworkState, Action extends NetworkAction> {
   state: State
@@ -36,9 +37,10 @@ export function useNetwork<State extends NetworkState = NetworkState, Action ext
         .catch(logger.error)
     }
   }, [network])
+  const peerFactoryInContext = usePeerFactory()
   const join = async (networkName: string, peerFactory?: PeerFactory) => {
     setConnecting(true)
-    await network.join(networkName, peerFactory).finally(() => {
+    await network.join(networkName, peerFactory ?? peerFactoryInContext).finally(() => {
       setConnecting(false)
     })
   }
