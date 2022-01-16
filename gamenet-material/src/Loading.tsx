@@ -1,5 +1,5 @@
 import React, { FunctionComponent } from 'react'
-import { CircularProgress } from '@material-ui/core'
+import { CircularProgress } from '@mui/material'
 import PropTypes from 'prop-types'
 
 const propTypes = {

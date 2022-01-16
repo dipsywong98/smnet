@@ -2,6 +2,7 @@ import React, { FunctionComponent, ReactNode, useState } from 'react'
 import { usePoker99 } from './withPoker99Network'
 import { Card, Suit } from './poker99/types'
 import { Poker99Action, Poker99ActionType } from './poker99/Poker99Action'
+import { aiAction } from './poker99/aiAction'
 
 export const Game: FunctionComponent = () => {
   const {
@@ -51,6 +52,10 @@ export const Game: FunctionComponent = () => {
       type: Poker99ActionType.END
     }).catch(handleError)
   }
+  const autoPlay = async (): Promise<void> => {
+    const action = aiAction(state, myPlayerId)
+    await dispatchAs(state.turn, action).then(console.log).catch(console.error)
+  }
   return (
     <div style={{ pointerEvents: 'all' }}>
       <div>
@@ -77,6 +82,7 @@ export const Game: FunctionComponent = () => {
               ? renderDeck(myPlayerId)
               : renderLocalDeck()
           }
+          <button onClick={autoPlay}>auto</button>
         </div>
         <div>
           target: {target}

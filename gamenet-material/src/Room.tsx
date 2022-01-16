@@ -17,7 +17,6 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
-  isWidthUp,
   List,
   ListItem,
   ListItemIcon,
@@ -28,19 +27,17 @@ import {
   TextField,
   Typography,
   useTheme,
-  withWidth
-} from '@material-ui/core'
-import { CancelOutlined, Person, PersonOutline, Visibility } from '@material-ui/icons'
+  Alert
+} from '@mui/material'
+import { CancelOutlined, Person, PersonOutline, Visibility } from '@mui/icons-material'
 import { AccountCheck, Crown, Robot } from 'mdi-material-ui'
 import { RobotAdd } from './RobotAdd'
 import { PersonAdd } from './PersonAdd'
-import Alert from '@material-ui/lab/Alert'
 import { getRandomName } from './getRandomName'
 import { Loading } from './Loading'
 import { i18nSub, RoomI18n, useGamenetI18n } from './i18n'
-import { Breakpoint } from '@material-ui/core/styles/createBreakpoints'
 
-export const Room = withWidth()(<S extends GenericBoardGameState, A extends GenericGameAction> (
+export const Room = <S extends GenericBoardGameState, A extends GenericGameAction> (
   {
     room,
     state,
@@ -55,10 +52,9 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
     playerType,
     dispatching,
     i18n: i18n_,
-    width,
     defaultShowInLobby,
     setShowInLobby
-  }: PropsWithChildren<BoardGameContextInterface<S, A>> & { i18n?: Partial<RoomI18n>, width?: Breakpoint, defaultShowInLobby?: boolean }) => {
+  }: PropsWithChildren<BoardGameContextInterface<S, A>> & { i18n?: Partial<RoomI18n>, defaultShowInLobby?: boolean }) => {
   const { i18n } = useGamenetI18n(i18n_)
   const [error, setError] = useState('')
   const [name, setName] = useState('')
@@ -166,8 +162,7 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
     }
   }
 
-  const padding = isWidthUp('sm', width!) ? '64px' : '16px'
-  const height = isWidthUp('sm', width!) ? 'calc(100vh - 100px)' : 'calc(100vh - 30px)'
+  const height = ['calc(100vh - 30px)', 'calc(100vh - 100px)'][1]
   return (
     <Paper elevation={3} component={Grid} style={{
       display: 'flex',
@@ -178,9 +173,13 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
       minHeight: height,
       boxSizing: 'border-box'
     }}>
-      <Grid item style={{ padding: `32px ${padding} 0 ${padding}` }}>
+      <Grid item sx={{ 
+        paddingTop: '32px',
+        paddingX: ['16px','64px'],
+        paddingBottom: 0,
+         }}>
         <Typography variant="h5">{i18n.room}: {room}</Typography>
-        <Grid container justify='space-between' alignItems='flex-end'>
+        <Grid container sx={{justifyContent:'space-between', alignItems:'flex-end'}}>
           <Grid item>
             <Typography variant="h6">{i18n.players}</Typography>
           </Grid>
@@ -195,7 +194,7 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
         </Grid>
       </Grid>
       <Divider/>
-      <Grid item style={{ flex: 1, overflow: 'auto', paddingLeft: padding, paddingRight: padding }}>
+      <Grid item sx={{ flex: 1, overflow: 'auto', paddingX: ['16px','64px'] }}>
         <List>
           {Object.entries(state.members).map(([id, name]) => {
             const color = (id === state.networkName || [PlayerType.LOCAL, PlayerType.AI].includes(playerType(name)))
@@ -207,9 +206,9 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
                 title={renderHintText(id, name)}
                 style={{ color }}>
                 <ListItemIcon>
-                    <span style={{ color }}>
+                    <Grid item style={{ color }}>
                       {getIcon(id, name)}
-                    </span>
+                    </Grid>
                 </ListItemIcon>
                 <ListItemText>
                   {name}
@@ -227,8 +226,7 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
       </Grid>
       <Divider/>
       {error !== '' && <Alert severity='error'>{error}</Alert>}
-      <Grid item container justify='space-between' spacing={1}
-            style={{ padding: `16px ${padding} 16px ${padding}` }}>
+      <Grid item container sx={{justifyContent:'space-between', paddingY: '16px', paddingX: ['16px','64px'] }} spacing={1}>
         <Grid item>
           {lobby && <FormControlLabel
             control={
@@ -290,4 +288,4 @@ export const Room = withWidth()(<S extends GenericBoardGameState, A extends Gene
       </Dialog>
     </Paper>
   )
-})
+}

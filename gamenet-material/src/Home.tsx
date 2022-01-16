@@ -1,5 +1,6 @@
 import React, { FunctionComponent, ReactNode, useEffect, useState } from 'react'
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
@@ -7,31 +8,26 @@ import {
   DialogTitle,
   Grid,
   IconButton,
-  isWidthUp,
   Paper,
   TextField,
   Typography,
-  withWidth
-} from '@material-ui/core'
-import { Alert } from '@material-ui/lab'
+} from '@mui/material'
 import { Loading } from './Loading'
 import { HomeI18n, i18nSub, useGamenetI18n } from './i18n'
-import { InfoRounded } from '@material-ui/icons'
+import { InfoRounded } from '@mui/icons-material'
 import { pushRoomCodeToHistory } from 'gamenet-material/src/pushRoomCodeToHistory'
 import { Lobby } from './Lobby'
 import { getParams } from './urlHelper'
 import { useLobby } from 'gamenet'
-import { Breakpoint } from '@material-ui/core/styles/createBreakpoints'
 
-const _Home: FunctionComponent<{
-  connect: (name: string, room: string) => Promise<void>, connecting: boolean, gameName: string, i18n?: Partial<HomeI18n>, children?: ReactNode, width?: Breakpoint
+export const Home: FunctionComponent<{
+  connect: (name: string, room: string) => Promise<void>, connecting: boolean, gameName: string, i18n?: Partial<HomeI18n>, children?: ReactNode
 }> = ({
         connect,
         connecting,
         gameName,
         i18n: _i18n,
         children,
-        width
       }) => {
   const urlParams = getParams()
   const { i18n } = useGamenetI18n(_i18n)
@@ -63,13 +59,13 @@ const _Home: FunctionComponent<{
       join().catch((error: Error) => setError(error.message))
     }
   }, [])
-  const padding = isWidthUp('sm', width!) ? '64px' : '16px'
   return (
-    <Paper elevation={3} style={{
-      padding: `32px ${padding}`,
+    <Paper elevation={3} sx={{
+      paddingY: '32px',
+      paddingX: ['16px', '64px'],
       width: 'calc(min(500px, 95%))', boxSizing: 'border-box'
     }}>
-      <Grid container justify='flex-end' direction='column' spacing={3}>
+      <Grid container spacing={3} sx={{justifyContent:'flex-end', flexDirection:'column'}}>
         <Grid item>
           <Typography
             variant="h5">{gameName !== undefined ? (i18nSub(i18n.welcomeTo$gameName ?? i18n.welcome ?? 'Welcome to {{}}', { gameName })) : i18n.welcome}</Typography>
@@ -81,7 +77,7 @@ const _Home: FunctionComponent<{
           <TextField label={i18n.roomCode} value={room} onChange={({ target: { value } }) => setRoom(value)} fullWidth/>
         </Grid>
         {error !== '' && <Alert severity='error'>{error}</Alert>}
-        <Grid item container justify='space-between' alignItems='center'>
+        <Grid item container sx={{justifyContent:'space-between', alignItems:'center'}}>
           {children ? <IconButton onClick={() => setOpenInfo(true)} title={i18n.info}>
             <InfoRounded/>
           </IconButton> : <div/>}
@@ -131,5 +127,3 @@ const _Home: FunctionComponent<{
     </Paper>
   )
 }
-
-export const Home = withWidth()(_Home)

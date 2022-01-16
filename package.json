@@ -21,6 +21,7 @@
     "deploy": "yarn workspace example deploy",
     "watch:smnet": "yarn workspace smnet watch",
     "watch:gamenet": "yarn workspace gamenet watch",
+    "watch:gamenet-material": "yarn workspace gamenet-material watch",
     "start:example": "yarn workspace example start",
     "build-fast:smnet": "yarn workspace smnet build-fast",
     "build-fast:gamenet": "yarn workspace gamenet build-fast",

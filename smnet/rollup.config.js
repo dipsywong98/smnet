@@ -5,9 +5,8 @@ const external = [
   'react',
   'gamenet',
   'smnet',
-  '@material-ui/core',
-  '@material-ui/icon',
-  '@material-ui/lab',
+  '@mui/material',
+  '@mui/icon',
   'mdi-material-ui',
 ];
 

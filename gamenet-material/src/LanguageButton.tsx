@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { IconButton, Menu, MenuItem } from '@material-ui/core'
-import { Language } from '@material-ui/icons'
+import { IconButton, Menu, MenuItem } from '@mui/material'
+import { Language } from '@mui/icons-material'
 import { useGamenetI18n } from './i18n'
 
 export const LanguageButton = () => {

@@ -1,7 +1,6 @@
 import {
   Button,
   Grid,
-  isWidthUp,
   Paper,
   Table,
   TableBody,
@@ -9,18 +8,18 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  withWidth
-} from '@material-ui/core'
+  useMediaQuery,
+  useTheme,
+} from '@mui/material'
 import React, { FunctionComponent, useEffect, useState } from 'react'
 import { useGamenetI18n } from './i18n'
 import { extractNamespacedRoom, LobbyRoomInfo, useLobby } from 'gamenet'
-import { PlayArrow } from '@material-ui/icons'
+import { PlayArrow } from '@mui/icons-material'
 import { attachParams } from './urlHelper'
 import { Loading } from './Loading'
-import { grey } from '@material-ui/core/colors'
-import { Breakpoint } from '@material-ui/core/styles/createBreakpoints'
+import { grey } from '@mui/material/colors'
 
-const _Lobby: FunctionComponent<{ playerName: string, width?: Breakpoint }> = ({ playerName, width }) => {
+export const Lobby: FunctionComponent<{ playerName: string }> = ({ playerName }) => {
   const { i18n } = useGamenetI18n()
   const [loading, setLoading] = useState(true)
   const lobby = useLobby()
@@ -80,7 +79,7 @@ const _Lobby: FunctionComponent<{ playerName: string, width?: Breakpoint }> = ({
                   <div>{i18n.game}:{namespace ?? i18n.unknown}</div>
                   <div>{i18n.host}:{roomInfo.members[roomInfo.roomNetworkName] ?? i18n.unknown}</div>
                   <Grid item>{Object.keys(roomInfo.members).length}{i18n.players}</Grid>
-                  <Grid container justify='space-between'>
+                  <Grid container sx={{justifyContent:'space-between'}}>
                     <Grid item>{roomInfo.started ? i18n.started : i18n.waiting}</Grid>
                     <Grid item>
                       <Button component='a' variant='contained' href={url} disabled={url === ''} size='small'>
@@ -96,9 +95,11 @@ const _Lobby: FunctionComponent<{ playerName: string, width?: Breakpoint }> = ({
         }
       </Grid>)
   }
+  const theme = useTheme();
+  const matches = useMediaQuery(theme.breakpoints.up('sm'));
   return (
     <Loading loading={loading}>
-      {isWidthUp('sm', width!) ? <TableContainer component={Paper}>
+      {matches ? <TableContainer component={Paper}>
           <Table style={{ width: '100%', backgroundColor: loading ? grey[100] : undefined }} size="small">
             <TableHead>
               <TableRow>
@@ -124,5 +125,3 @@ const _Lobby: FunctionComponent<{ playerName: string, width?: Breakpoint }> = ({
     </Loading>
   )
 }
-
-export const Lobby = withWidth()(_Lobby)

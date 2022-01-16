@@ -3,7 +3,7 @@ import { Game } from './Game'
 import { usePoker99, withPoker99Network } from './withPoker99Network'
 import { GamePagesSlider, Home, LanguageButton, Room, useGamenetI18n, withGamenetI18n } from 'gamenet-material'
 import { i18ns } from './i18ns'
-import { DialogContent } from '@material-ui/core'
+import { DialogContent } from '@mui/material'
 import { useLobby, withLobby } from 'gamenet'
 
 export const GameApp: FunctionComponent = withLobby(withGamenetI18n({ i18ns })(withPoker99Network(() => {
